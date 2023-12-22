@@ -1,0 +1,14 @@
+name: SurvivalFriend
+version: 1.1
+main: de.laurinhummel.survivalfriend.SF
+api-version: '1.19'
+
+commands:
+  menu:
+    description: Opens the menu to (de)activate features of this plugin
+    usage: /menu
+    permission: sf.menu
+  compass:
+    description: Receive a compass pointing to a location
+    usage: /menu <player>|<x> <y>
+    permission: sf.pathfinder
