@@ -27,6 +27,7 @@ public final class SF extends JavaPlugin {
 
         getCommand("menu").setExecutor(new Menu());
         getCommand("compass").setExecutor(new Compass());
+            getCommand("compass").setTabCompleter(new Compass());
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);

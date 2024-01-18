@@ -51,7 +51,7 @@ public class Menu implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         PermissionManager pm = new PermissionManager(sender, null);
-        if(!(boolean) pm.check()) { sender.sendMessage((String) pm.check()); }
+        if(!(pm.check() instanceof Boolean)) { sender.sendMessage((String) pm.check()); return true; }
 
         for(int i : new int[]{0,1,9,7,8,17,36,45,46,44,53,52}) {
             menu.setItem(i, createItem(Material.GRAY_STAINED_GLASS_PANE, "PLACEHOLDER", false, ""));

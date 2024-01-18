@@ -1,5 +1,5 @@
 name: SurvivalFriend
-version: 1.1
+version: 1.2.8
 main: de.laurinhummel.survivalfriend.SF
 api-version: '1.19'
 
@@ -10,5 +10,22 @@ commands:
     permission: sf.menu
   compass:
     description: Receive a compass pointing to a location
-    usage: /menu <player>|<x> <y>
+    usage: /menu <player>|<x> <z>
     permission: sf.pathfinder
+    aliases:
+      - cp
+      - comp
+  enderchest:
+    description: Open your ender chest, wherever you are
+    usage: /ec
+    permission: sf.enderchest
+    aliases:
+      - ec
+  workbench:
+    description: Opens a crafting table
+    usage: /wb
+    permission: sf.workbench
+    aliases:
+      - wb
+      - ct
+      - craftingtable

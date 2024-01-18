@@ -1,5 +1,6 @@
 package de.laurinhummel.survivalfriend.managers;
 
+import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.Menu;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -20,9 +21,17 @@ public class PermissionManager {
 
     public Object check() {
         if(!(sender instanceof Player)) { return ChatColor.RED + "This command is for players only!"; }
-        else if(level == null || level.getPosition() == 2) { if(!sender.isOp()) return ChatColor.RED + "Sorry, but you need admin privileges to use this feature!"; }
-        else if(level.getPosition() == 3) { return ChatColor.RED + "Sorry, but this feature has been disabled!"; }
+        else if(level == null || getPerm(level) == 2) { if(!sender.isOp()) return ChatColor.RED + "Sorry, but you need admin privileges to use this feature!"; }
+        else if(getPerm(level) == 3) { return ChatColor.RED + "Sorry, but this feature has been disabled!"; }
 
         return true;
+    }
+
+    private int getPerm(Menu.MenuItems item) {
+        Object o = SF.getPlugin().getConfig().get(item.getPath());
+
+        if(o instanceof Integer) return (int) o;
+        if(o instanceof Boolean) return (boolean) o ? 1 : 3;
+        return 3;
     }
 }
