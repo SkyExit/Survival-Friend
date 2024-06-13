@@ -3,6 +3,7 @@ package de.laurinhummel.survivalfriend;
 import de.laurinhummel.survivalfriend.commands.Compass;
 import de.laurinhummel.survivalfriend.commands.Enderchest;
 import de.laurinhummel.survivalfriend.commands.Menu;
+import de.laurinhummel.survivalfriend.commands.Workbench;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
 import org.bukkit.Bukkit;
@@ -32,6 +33,7 @@ public final class SF extends JavaPlugin {
         getCommand("compass").setExecutor(new Compass());
             getCommand("compass").setTabCompleter(new Compass());
         getCommand("enderchest").setExecutor(new Enderchest());
+        getCommand("workbench").setExecutor(new Workbench());
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);
