@@ -1,7 +1,7 @@
 package de.laurinhummel.survivalfriend.events;
 
 import de.laurinhummel.survivalfriend.SF;
-import de.laurinhummel.survivalfriend.commands.Menu;
+import de.laurinhummel.survivalfriend.commands.MenuSF;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,7 +16,7 @@ public class CancelCropTrampling implements Listener {
 
     @EventHandler
     public void onMobTrample(EntityInteractEvent event) {
-        if(!SF.getPlugin().getConfig().getBoolean(Menu.MenuItems.TRAMPLING_MOB.getPath())) {
+        if(!SF.getPlugin().getConfig().getBoolean(MenuSF.MenuItems.TRAMPLING_MOB.getPath())) {
             if (event.getEntity() instanceof org.bukkit.entity.Player) return;
             if (Arrays.stream(materials).anyMatch(material -> material == event.getBlock().getType())) {
                 event.setCancelled(true);
@@ -26,7 +26,7 @@ public class CancelCropTrampling implements Listener {
 
     @EventHandler
     public void onPlayerTrample(PlayerInteractEvent event) {
-        if(!SF.getPlugin().getConfig().getBoolean(Menu.MenuItems.TRAMPLING_PLAYER.getPath())) {
+        if(!SF.getPlugin().getConfig().getBoolean(MenuSF.MenuItems.TRAMPLING_PLAYER.getPath())) {
             if (event.getAction() == Action.PHYSICAL && (Arrays.stream(materials).anyMatch(material -> material == event.getClickedBlock().getType()))) {
                 event.setCancelled(true);
             }

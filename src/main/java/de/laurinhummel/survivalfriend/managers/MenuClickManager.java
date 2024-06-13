@@ -1,7 +1,7 @@
 package de.laurinhummel.survivalfriend.managers;
 
 import de.laurinhummel.survivalfriend.SF;
-import de.laurinhummel.survivalfriend.commands.Menu;
+import de.laurinhummel.survivalfriend.commands.MenuSF;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.Objects;
@@ -14,7 +14,7 @@ public class MenuClickManager {
     }
 
     public void updateConfig() {
-        for(Menu.MenuItems element : Menu.MenuItems.values()) {
+        for(MenuSF.MenuItems element : MenuSF.MenuItems.values()) {
             if(element.getPosition() != position) continue;
 
             String path = element.getPath();

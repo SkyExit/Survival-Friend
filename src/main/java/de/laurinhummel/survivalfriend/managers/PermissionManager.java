@@ -1,7 +1,7 @@
 package de.laurinhummel.survivalfriend.managers;
 
 import de.laurinhummel.survivalfriend.SF;
-import de.laurinhummel.survivalfriend.commands.Menu;
+import de.laurinhummel.survivalfriend.commands.MenuSF;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -12,9 +12,9 @@ public class PermissionManager {
 
     CommandSender sender;
     @Nullable
-    Menu.MenuItems level;
+    MenuSF.MenuItems level;
 
-    public PermissionManager(CommandSender sender, @Nullable Menu.MenuItems level) {
+    public PermissionManager(CommandSender sender, @Nullable MenuSF.MenuItems level) {
         this.sender = sender;
         this.level = level;
     }
@@ -27,7 +27,7 @@ public class PermissionManager {
         return true;
     }
 
-    private int getPerm(Menu.MenuItems item) {
+    private int getPerm(MenuSF.MenuItems item) {
         Object o = SF.getPlugin().getConfig().get(item.getPath());
 
         if(o instanceof Integer) return (int) o;

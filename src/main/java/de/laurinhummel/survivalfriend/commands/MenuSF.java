@@ -23,11 +23,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 
-import static de.laurinhummel.survivalfriend.commands.Menu.MenuItems.*;
+import static de.laurinhummel.survivalfriend.commands.MenuSF.MenuItems.*;
 
-public class Menu implements CommandExecutor, Listener {
+public class MenuSF implements CommandExecutor, Listener {
 
-    private static final Inventory menu = Bukkit.createInventory(null, 6 * 9, "Menu");
+    private static final Inventory menu = Bukkit.createInventory(null, 6 * 9, "MenuSF");
 
     public enum MenuItems{
         CRAFTING_TABLE(12, "utils.wb"),
@@ -116,7 +116,7 @@ public class Menu implements CommandExecutor, Listener {
 
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
-        if (!e.getView().getTitle().equals("Menu")) return;
+        if (!e.getInventory().equals(menu)) return;
         e.setCancelled(true);
 
         final ItemStack clickedItem = e.getCurrentItem();
@@ -126,7 +126,7 @@ public class Menu implements CommandExecutor, Listener {
             clickManager.updateConfig();
 
         Player p = (Player) e.getWhoClicked();
-            p.performCommand("menu");
+            p.performCommand("menusf");
     }
 
     @EventHandler

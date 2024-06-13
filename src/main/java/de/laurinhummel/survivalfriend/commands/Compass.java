@@ -19,7 +19,7 @@ import java.util.Objects;
 public class Compass implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        PermissionManager pm = new PermissionManager(sender, Menu.MenuItems.PATHFINDER);
+        PermissionManager pm = new PermissionManager(sender, MenuSF.MenuItems.PATHFINDER);
             if(!(pm.check() instanceof Boolean)) { sender.sendMessage((String) pm.check()); return true; }
 
         Player player = (Player) sender;

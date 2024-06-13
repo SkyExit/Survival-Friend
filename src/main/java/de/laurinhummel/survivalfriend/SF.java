@@ -2,18 +2,15 @@ package de.laurinhummel.survivalfriend;
 
 import de.laurinhummel.survivalfriend.commands.Compass;
 import de.laurinhummel.survivalfriend.commands.Enderchest;
-import de.laurinhummel.survivalfriend.commands.Menu;
+import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.commands.Workbench;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public final class SF extends JavaPlugin {
@@ -25,11 +22,11 @@ public final class SF extends JavaPlugin {
     @Override
     public void onEnable() {
         PluginManager pluginManager = Bukkit.getPluginManager();
-            pluginManager.registerEvents(new Menu(), this);
+            pluginManager.registerEvents(new MenuSF(), this);
             pluginManager.registerEvents(new CancelCreeper(), this);
             pluginManager.registerEvents(new CancelCropTrampling(), this);
 
-        getCommand("menu").setExecutor(new Menu());
+        getCommand("menusf").setExecutor(new MenuSF());
         getCommand("compass").setExecutor(new Compass());
             getCommand("compass").setTabCompleter(new Compass());
         getCommand("enderchest").setExecutor(new Enderchest());

@@ -4,27 +4,23 @@ main: de.laurinhummel.survivalfriend.SF
 api-version: '1.19'
 
 commands:
-  menu:
+  menusf:
     description: Opens the menu to (de)activate features of this plugin
-    usage: /menu
-    permission: sf.menu
+    usage: /menusf
   compass:
     description: Receive a compass pointing to a location
-    usage: /menu <player>|<x> <z>
-    permission: sf.pathfinder
+    usage: /compass <player>|<x> <z>
     aliases:
       - cp
       - comp
   enderchest:
     description: Open your ender chest, wherever you are
     usage: /ec
-    permission: sf.enderchest
     aliases:
       - ec
   workbench:
     description: Opens a crafting table
     usage: /wb
-    permission: sf.workbench
     aliases:
       - wb
       - ct
