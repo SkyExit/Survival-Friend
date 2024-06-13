@@ -1,6 +1,7 @@
 package de.laurinhummel.survivalfriend;
 
 import de.laurinhummel.survivalfriend.commands.Compass;
+import de.laurinhummel.survivalfriend.commands.Enderchest;
 import de.laurinhummel.survivalfriend.commands.Menu;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
@@ -10,6 +11,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public final class SF extends JavaPlugin {
@@ -28,6 +31,7 @@ public final class SF extends JavaPlugin {
         getCommand("menu").setExecutor(new Menu());
         getCommand("compass").setExecutor(new Compass());
             getCommand("compass").setTabCompleter(new Compass());
+        getCommand("enderchest").setExecutor(new Enderchest());
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);
