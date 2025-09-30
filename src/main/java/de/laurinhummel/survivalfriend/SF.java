@@ -6,6 +6,7 @@ import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.commands.Workbench;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
+import de.laurinhummel.survivalfriend.events.SoloPortalFarm;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
@@ -25,16 +26,17 @@ public final class SF extends JavaPlugin {
             pluginManager.registerEvents(new MenuSF(), this);
             pluginManager.registerEvents(new CancelCreeper(), this);
             pluginManager.registerEvents(new CancelCropTrampling(), this);
+            pluginManager.registerEvents(new SoloPortalFarm(), this);
 
         getCommand("menusf").setExecutor(new MenuSF());
         getCommand("compass").setExecutor(new Compass());
-            getCommand("compass").setTabCompleter(new Compass());
+        getCommand("compass").setTabCompleter(new Compass());
         getCommand("enderchest").setExecutor(new Enderchest());
         getCommand("workbench").setExecutor(new Workbench());
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);
-            config.addDefault("creeper.explosion", false);
+            config.addDefault(MenuSF.MenuItems.CREEPER_EXPLOSIONS.getPath(), false);
             config.addDefault("creeper.damage", true);
             config.addDefault("trampling.player", false);
             config.addDefault("trampling.mob", false);
@@ -42,6 +44,7 @@ public final class SF extends JavaPlugin {
             config.addDefault("utils.compass", 1);
             config.addDefault("utils.ec", 3);
             config.addDefault("utils.home", 3);
+            config.addDefault("utils.spawn", 3);
             config.addDefault("utils.spawn", 3);
         config.options().copyDefaults(true);
         config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));

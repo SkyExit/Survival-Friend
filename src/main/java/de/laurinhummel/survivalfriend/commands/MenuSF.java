@@ -36,7 +36,8 @@ public class MenuSF implements CommandExecutor, Listener {
         CREEPER_EXPLOSIONS(29, "creeper.explosion"),
         CREEPER_DAMAGE(30, "creeper.damage"),
         TRAMPLING_PLAYER(32, "trampling.player"),
-        TRAMPLING_MOB(33, "trampling.mob");
+        TRAMPLING_MOB(33, "trampling.mob"),
+        SOLO_PORTAL_FARM(31, "spf.enable");
 
         private final int position;
         private final String path;
@@ -57,7 +58,7 @@ public class MenuSF implements CommandExecutor, Listener {
             menu.setItem(i, createItem(Material.GRAY_STAINED_GLASS_PANE, "PLACEHOLDER", false, ""));
         }
 
-        //BASIC SURVIVOR STUFF
+        // BASIC SURVIVOR STUFF
         menu.setItem(CRAFTING_TABLE.position, createItem(Material.CRAFTING_TABLE, "CRAFTING TABLE", false,
                 ChatColor.AQUA + "This enables the /wb command",
                 ChatColor.GRAY + "Status: " + getStatus(CRAFTING_TABLE.path)));
@@ -68,7 +69,7 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "This enables the /ec command",
                 ChatColor.GRAY + "Status: " + getStatus(ENDER_CHEST.path)));
 
-        //ANTI CREEPER
+        // ANTI CREEPER
         menu.setItem(CREEPER_EXPLOSIONS.position, createItem(Material.CREEPER_HEAD, "CREEPER EXPLOSIONS", false,
                 ChatColor.AQUA + "Should creepers be able to destroy blocks?",
                 ChatColor.GRAY + "Status: " + getStatus(CREEPER_EXPLOSIONS.path)));
@@ -76,13 +77,18 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "Should creepers be able to damage players?",
                 ChatColor.GRAY + "Status: " + getStatus(CREEPER_DAMAGE.path)));
 
-        //CROP TRAMPLING
+        // CROP TRAMPLING
         menu.setItem(TRAMPLING_PLAYER.position, createItem(Material.LEATHER_BOOTS, "PLAYER TRAMPLING", false,
                 ChatColor.AQUA + "Should players be able to destroy farmland?",
                 ChatColor.GRAY + "Status: " + getStatus(TRAMPLING_PLAYER.path)));
         menu.setItem(TRAMPLING_MOB.position, createItem(Material.CHAINMAIL_BOOTS, "MOB TRAMPLING", false,
                 ChatColor.AQUA + "Should mobs be able to destroy farmland?",
                 ChatColor.GRAY + "Status: " + getStatus(TRAMPLING_MOB.path)));
+
+        // SOLO PORTAL FARM
+        menu.setItem(SOLO_PORTAL_FARM.position, createItem(Material.OBSIDIAN, "SOLO PORTAL FARM", false,
+                ChatColor.AQUA + "Should mobs despawn when far away?",
+                ChatColor.GRAY + "Status: " + getStatus(SOLO_PORTAL_FARM.path)));
 
         menu.setItem(49, createItem(Material.GREEN_TERRACOTTA, ChatColor.GRAY + "PLUGIN " + ChatColor.GREEN + "ENABLED", true));
 
