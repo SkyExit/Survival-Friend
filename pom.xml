@@ -6,7 +6,7 @@
 
     <groupId>de.laurinhummel</groupId>
     <artifactId>survivalfriend</artifactId>
-    <version>0.2.2-ALPHA</version>
+    <version>0.2.3-ALPHA</version>
     <packaging>jar</packaging>
 
     <name>SurvivalFriend</name>
