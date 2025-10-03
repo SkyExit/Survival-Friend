@@ -10,8 +10,7 @@ import org.bukkit.entity.Player;
 public class Workbench implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        PermissionManager pm = new PermissionManager(sender, MenuSF.MenuItems.CRAFTING_TABLE);
-        if(!(pm.check() instanceof Boolean)) { sender.sendMessage((String) pm.check()); return true; }
+        if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.CRAFTING_TABLE)) { return true; }
 
             Player player = (Player) sender;
                 SkyLogger.sendPlayer(player, "Opening workbench...", SkyLogger.LogType.INFO);

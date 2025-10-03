@@ -1,18 +1,17 @@
 package de.laurinhummel.survivalfriend;
 
-import de.laurinhummel.survivalfriend.commands.Compass;
-import de.laurinhummel.survivalfriend.commands.Enderchest;
-import de.laurinhummel.survivalfriend.commands.MenuSF;
-import de.laurinhummel.survivalfriend.commands.Workbench;
+import de.laurinhummel.survivalfriend.commands.*;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
 import de.laurinhummel.survivalfriend.events.SoloPortalFarm;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Collections;
+import java.util.HashMap;
 
 public final class SF extends JavaPlugin {
     private static SF plugin;
@@ -33,6 +32,7 @@ public final class SF extends JavaPlugin {
         getCommand("compass").setTabCompleter(new Compass());
         getCommand("enderchest").setExecutor(new Enderchest());
         getCommand("workbench").setExecutor(new Workbench());
+        getCommand("tpa").setExecutor(new TPA());
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);
@@ -43,7 +43,8 @@ public final class SF extends JavaPlugin {
             config.addDefault(MenuSF.MenuItems.CRAFTING_TABLE.getPath(), 3);
             config.addDefault(MenuSF.MenuItems.PATHFINDER.getPath(), 1);
             config.addDefault(MenuSF.MenuItems.ENDER_CHEST.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), true);
+            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), false);
+            config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
         config.options().copyDefaults(true);
         config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));
         saveConfig();
@@ -54,4 +55,5 @@ public final class SF extends JavaPlugin {
     }
 
     public static SF getPlugin() { return plugin; }
+    public static HashMap<Player, Player> tpa;
 }

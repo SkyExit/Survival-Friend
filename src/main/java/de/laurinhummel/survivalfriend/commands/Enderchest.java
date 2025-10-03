@@ -11,8 +11,7 @@ import org.bukkit.entity.Player;
 public class Enderchest implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        PermissionManager pm = new PermissionManager(sender, MenuSF.MenuItems.ENDER_CHEST);
-        if(!(pm.check() instanceof Boolean)) { sender.sendMessage((String) pm.check()); return true; }
+        if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.ENDER_CHEST)) { return true; }
 
             Player player = (Player) sender;
                 SkyLogger.sendPlayer(player, "Opening endechest...", SkyLogger.LogType.INFO);

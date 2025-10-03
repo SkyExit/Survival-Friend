@@ -1,5 +1,5 @@
 name: SurvivalFriend
-version: 1.2.8
+version: 0.4.2
 main: de.laurinhummel.survivalfriend.SF
 api-version: '1.19'
 
@@ -25,3 +25,6 @@ commands:
       - wb
       - ct
       - craftingtable
+  tpa:
+    description: TPA
+    usage: /tpa <player> [accept]

@@ -37,7 +37,8 @@ public class MenuSF implements CommandExecutor, Listener {
         CREEPER_DAMAGE(30, "creeper.damage"),
         TRAMPLING_PLAYER(32, "trampling.player"),
         TRAMPLING_MOB(33, "trampling.mob"),
-        SOLO_PORTAL_FARM(31, "spf.enable");
+        SOLO_PORTAL_FARM(19, "spf.enable"),
+        TPA(26, "tpa.enable");
 
         private final int position;
         private final String path;
@@ -51,8 +52,7 @@ public class MenuSF implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        PermissionManager pm = new PermissionManager(sender, null);
-        if(!(pm.check() instanceof Boolean)) { sender.sendMessage((String) pm.check()); return true; }
+        if(!PermissionManager.checkPermission(sender, null)) { return true; }
 
         for(int i : new int[]{0,1,9,7,8,17,36,45,46,44,53,52}) {
             menu.setItem(i, createItem(Material.GRAY_STAINED_GLASS_PANE, "PLACEHOLDER", false, ""));
@@ -89,6 +89,11 @@ public class MenuSF implements CommandExecutor, Listener {
         menu.setItem(SOLO_PORTAL_FARM.position, createItem(Material.OBSIDIAN, "SOLO PORTAL FARM", false,
                 ChatColor.AQUA + "Should mobs despawn when far away?",
                 ChatColor.GRAY + "Status: " + getStatus(SOLO_PORTAL_FARM.path)));
+
+        // TPA
+        menu.setItem(TPA.position, createItem(Material.ENDER_PEARL, "TPA", false,
+                ChatColor.AQUA + "Should players be able to send /tpa requests",
+                ChatColor.GRAY + "Status: " + getStatus(TPA.path)));
 
         menu.setItem(49, createItem(Material.GREEN_TERRACOTTA, ChatColor.GRAY + "PLUGIN " + ChatColor.GREEN + "ENABLED", true));
 

@@ -21,7 +21,7 @@ public class SkyLogger {
     }
 
     public static void sendPrefixMessage(CommandSender receiver, String message) {
-        sendMessage(receiver, SkyStrings.SKYSTATSCONSOLE + message);
+        sendMessage(receiver, SkyStrings.SFCONSOLE + message);
     }
 
     public static void sendConsole(String message) {
@@ -29,6 +29,6 @@ public class SkyLogger {
     }
 
     public static void sendPlayer(Player player, String message, LogType type) {
-        player.sendMessage(SkyStrings.SKYSTATS + type.color + message);
+        player.sendMessage(SkyStrings.SF + type.color + message);
     }
 }

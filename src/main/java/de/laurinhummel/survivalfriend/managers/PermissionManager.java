@@ -10,24 +10,34 @@ import javax.annotation.Nullable;
 
 public class PermissionManager {
 
-    CommandSender sender;
-    @Nullable
-    MenuSF.MenuItems level;
-
-    public PermissionManager(CommandSender sender, @Nullable MenuSF.MenuItems level) {
-        this.sender = sender;
-        this.level = level;
-    }
-
-    public Object check() {
-        if(!(sender instanceof Player)) { return ChatColor.RED + "This command is for players only!"; }
-        else if(level == null || getPerm(level) == 2) { if(!sender.isOp()) return ChatColor.RED + "Sorry, but you need admin privileges to use this feature!"; }
-        else if(getPerm(level) == 3) { return ChatColor.RED + "Sorry, but this feature has been disabled!"; }
-
+    /**
+     *
+     * @param sender
+     * @param feature
+     * @return Whether the user has access to the feature
+     */
+    public static boolean checkPermission(CommandSender sender,  @Nullable MenuSF.MenuItems feature) {
+        if(!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "This command is for players only!");
+            return false;
+        }
+        else if(feature == null || getPerm(feature) == 2) {
+            if(!sender.isOp()) { sender.sendMessage(ChatColor.RED + "Sorry, but you need admin privileges to use this feature!");
+                return false;
+            }
+        }
+        else if(getPerm(feature) == 3) { sender.sendMessage(ChatColor.RED + "Sorry, but this feature has been disabled!");
+            return false;
+        }
         return true;
     }
 
-    private int getPerm(MenuSF.MenuItems item) {
+    /**
+     * Returns the config-value of a given string
+     * @param item the item
+     * @return access level of the requested function
+     */
+    private static int getPerm(MenuSF.MenuItems item) {
         Object o = SF.getPlugin().getConfig().get(item.getPath());
 
         if(o instanceof Integer) return (int) o;
