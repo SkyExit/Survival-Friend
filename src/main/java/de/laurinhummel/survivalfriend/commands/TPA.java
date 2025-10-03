@@ -4,9 +4,12 @@ import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.misc.McColors;
 import de.laurinhummel.survivalfriend.misc.SkyLogger;
+import de.laurinhummel.survivalfriend.misc.SkyStrings;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -30,6 +33,13 @@ public class TPA implements CommandExecutor {
             if(SF.tpa.get(target) == player) {
                 assert target != null;
                 target.teleport(player.getLocation());
+
+                Bukkit.getWorld(player.getWorld().getName()).spawnParticle(Particle.PORTAL, player.getLocation(), 20, 5);
+                Bukkit.getWorld(player.getWorld().getName()).playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+
+                SkyLogger.sendPlayer(player, McColors.GOLD + target.getName() + McColors.AQUA + " has been teleported to you!", SkyLogger.LogType.INFO);
+                SkyLogger.sendPlayer(target, "You have been teleported to " + McColors.GOLD + player.getName() + McColors.AQUA + "!", SkyLogger.LogType.INFO);
+
                 SF.tpa.remove(target);
             } else {
                 SkyLogger.sendPlayer(player, "Player " + args[0] + " hasn't sent a request!", SkyLogger.LogType.ERROR);
@@ -40,10 +50,9 @@ public class TPA implements CommandExecutor {
         } else if(args.length == 1) {
             if(SF.tpa.containsKey(player)) { SF.tpa.remove(player); }
             SF.tpa.put(player, target);
-            SkyLogger.sendPlayer(player, "A TPA request has been sent to " + target.getName() + "!", SkyLogger.LogType.INFO);
-            SkyLogger.sendPlayer(target, "TPA request from " + player.getName() + "!", SkyLogger.LogType.INFO);
-            TextComponent textComponent = new TextComponent(McColors.GREEN + "[ACCEPT]");
-                textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpa " + player.getName() + "accept"));
+            SkyLogger.sendPlayer(player, "A TPA request has been sent to " + McColors.GOLD + target.getName() + McColors.AQUA + "!", SkyLogger.LogType.INFO);
+            TextComponent textComponent = new TextComponent(SkyStrings.SF + McColors.AQUA + "TPA request from " + McColors.GOLD + player.getName() + McColors.AQUA + "!" + McColors.GREEN + "   [ACCEPT]");
+                textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpa " + player.getName() + " accept"));
             target.spigot().sendMessage(textComponent);
         }
         return true;

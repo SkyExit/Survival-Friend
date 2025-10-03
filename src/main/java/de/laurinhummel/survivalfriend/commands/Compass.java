@@ -1,6 +1,7 @@
 package de.laurinhummel.survivalfriend.commands;
 
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
+import de.laurinhummel.survivalfriend.misc.SkyLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,18 +24,16 @@ public class Compass implements CommandExecutor, TabCompleter {
 
         Player player = (Player) sender;
         ItemStack compass = player.getInventory().getItemInMainHand();
-        if(!Objects.equals(compass, new ItemStack(Material.COMPASS))) { player.sendMessage(ChatColor.RED + "Sorry, but you need to hold a compass in your main hand!"); return true; }
+        if(!Objects.equals(compass, new ItemStack(Material.COMPASS))) { SkyLogger.sendPlayer(player, "Sorry, but you need to hold a compass in your main hand!", SkyLogger.LogType.ERROR); return true; }
 
         switch (args.length) {
-            default -> { player.sendMessage(ChatColor.RED + "Sorry, but you need to specify a player or coordinates!"); return false; }
             case 1 -> {
                 Player target = Bukkit.getServer().getPlayer(args[0]);
                 if(target != null && target.isOnline()) {
                     player.setCompassTarget(target.getLocation());
-
-                    player.sendMessage(ChatColor.AQUA + "Compass coordinates were set to " + ChatColor.GOLD + target.getName());
+                    SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + target.getName(), SkyLogger.LogType.INFO);
                 } else {
-                    player.sendMessage(ChatColor.RED + "Sorry, but this player is not online...");
+                    SkyLogger.sendPlayer(player, "Sorry, but this player is not online...", SkyLogger.LogType.ERROR);
                 }
             }
             case 2 -> {
@@ -44,11 +43,12 @@ public class Compass implements CommandExecutor, TabCompleter {
 
                     player.setCompassTarget(new Location(player.getWorld(), x, 64, z));
 
-                    player.sendMessage(ChatColor.AQUA + "Compass coordinates were set to " + ChatColor.GOLD + x + "/" + z);
+                    SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + x + "/" + z,  SkyLogger.LogType.INFO);
                 } catch (Exception ex) {
-                    player.sendMessage(ChatColor.RED + "Sorry, but i couldn't read these coordinates...");
+                    SkyLogger.sendPlayer(player, "Sorry, but i couldn't read these coordinates...", SkyLogger.LogType.ERROR);
                 }
             }
+            default -> { SkyLogger.sendPlayer(player, "Sorry, but you need to specify a player or coordinates!", SkyLogger.LogType.ERROR); return true; }
         }
 
         return true;
