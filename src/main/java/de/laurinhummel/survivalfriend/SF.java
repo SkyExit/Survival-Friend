@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -43,7 +44,7 @@ public final class SF extends JavaPlugin {
             config.addDefault(MenuSF.MenuItems.CRAFTING_TABLE.getPath(), 3);
             config.addDefault(MenuSF.MenuItems.PATHFINDER.getPath(), 1);
             config.addDefault(MenuSF.MenuItems.ENDER_CHEST.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), false);
+            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), true);
             config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
         config.options().copyDefaults(true);
         config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));
@@ -56,4 +57,5 @@ public final class SF extends JavaPlugin {
 
     public static SF getPlugin() { return plugin; }
     public static HashMap<Player, Player> tpa = new HashMap<>();
+    public static HashMap<Player, Timestamp> tpaCooldown = new HashMap<>();
 }

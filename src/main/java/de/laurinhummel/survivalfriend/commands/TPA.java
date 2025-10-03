@@ -15,11 +15,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.sql.Timestamp;
+
 public class TPA implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.TPA)) { return true; }
 
+        int cooldown = 60;                  // Minutes
         Player player = (Player) sender;
         Player target;
         try {
@@ -34,7 +37,7 @@ public class TPA implements CommandExecutor {
                 assert target != null;
                 target.teleport(player.getLocation());
 
-                Bukkit.getWorld(player.getWorld().getName()).spawnParticle(Particle.PORTAL, player.getLocation(), 20, 5);
+                Bukkit.getWorld(player.getWorld().getName()).spawnParticle(Particle.PORTAL, player.getLocation(), 20);
                 Bukkit.getWorld(player.getWorld().getName()).playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
 
                 SkyLogger.sendPlayer(player, McColors.GOLD + target.getName() + McColors.AQUA + " has been teleported to you!", SkyLogger.LogType.INFO);
@@ -48,12 +51,22 @@ public class TPA implements CommandExecutor {
             return true;
 
         } else if(args.length == 1) {
+            if(SF.tpaCooldown.containsKey(player)) {
+                if(!(SF.tpaCooldown.get(player).getTime() + (cooldown*60*1000) <= System.currentTimeMillis())) {
+                    SkyLogger.sendPlayer(player, "You have to wait " + Math.round((float) Math.abs(SF.tpaCooldown.get(player).getTime() + (cooldown*60*1000) - System.currentTimeMillis())/1000/60) + " more minutes to do that again!", SkyLogger.LogType.ERROR);
+                    return true;
+                }
+            }
+            SF.tpaCooldown.remove(player);
+
             if(SF.tpa.containsKey(player)) { SF.tpa.remove(player); }
             SF.tpa.put(player, target);
             SkyLogger.sendPlayer(player, "A TPA request has been sent to " + McColors.GOLD + target.getName() + McColors.AQUA + "!", SkyLogger.LogType.INFO);
             TextComponent textComponent = new TextComponent(SkyStrings.SF + McColors.AQUA + "TPA request from " + McColors.GOLD + player.getName() + McColors.AQUA + "!" + McColors.GREEN + "   [ACCEPT]");
                 textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpa " + player.getName() + " accept"));
             target.spigot().sendMessage(textComponent);
+
+            SF.tpaCooldown.put(player, new Timestamp(System.currentTimeMillis()));
         }
         return true;
     }

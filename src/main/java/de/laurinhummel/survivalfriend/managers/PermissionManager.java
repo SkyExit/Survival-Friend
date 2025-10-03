@@ -12,8 +12,8 @@ public class PermissionManager {
 
     /**
      *
-     * @param sender
-     * @param feature
+     * @param sender Player object to check for access level
+     * @param feature Feature to check access level against
      * @return Whether the user has access to the feature
      */
     public static boolean checkPermission(CommandSender sender,  @Nullable MenuSF.MenuItems feature) {
