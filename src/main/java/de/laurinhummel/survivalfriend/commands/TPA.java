@@ -15,14 +15,14 @@ import org.bukkit.entity.Player;
 public class TPA implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.TPA)) {return true; }
+        if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.TPA)) { return true; }
 
         Player player = (Player) sender;
         Player target;
         try {
             target = Bukkit.getPlayer(args[0]);
         } catch (Exception ex) {
-            SkyLogger.sendPlayer(player, "Player " + args[0] + " is not online!", SkyLogger.LogType.INFO);
+            SkyLogger.sendPlayer(player, "Player is not online!", SkyLogger.LogType.INFO);
             return true;
         }
 
@@ -46,8 +46,6 @@ public class TPA implements CommandExecutor {
                 textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpa " + player.getName() + "accept"));
             target.spigot().sendMessage(textComponent);
         }
-
-        player.openWorkbench(null, true);
         return true;
     }
 }

@@ -38,7 +38,7 @@ public class MenuSF implements CommandExecutor, Listener {
         TRAMPLING_PLAYER(32, "trampling.player"),
         TRAMPLING_MOB(33, "trampling.mob"),
         SOLO_PORTAL_FARM(19, "spf.enable"),
-        TPA(26, "tpa.enable");
+        TPA(25, "tpa.enable");
 
         private final int position;
         private final String path;

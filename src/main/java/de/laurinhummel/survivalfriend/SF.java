@@ -55,5 +55,5 @@ public final class SF extends JavaPlugin {
     }
 
     public static SF getPlugin() { return plugin; }
-    public static HashMap<Player, Player> tpa;
+    public static HashMap<Player, Player> tpa = new HashMap<>();
 }
