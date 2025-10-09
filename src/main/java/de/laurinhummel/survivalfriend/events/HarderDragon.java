@@ -6,20 +6,21 @@ import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class HarderDragon implements Listener {
-    private static final double EXTRA_HEALTH = 1000.0D;
+    private static final double EXTRA_HEALTH = 1000;
 
-    private static final double HP_THRESHOLD = 300.0D;
+    private static final double HP_THRESHOLD = 300;
 
     private double lastMilestone = 0.0D;
 
     private int resistanceLevel = 0;
 
     @EventHandler
-    private void onEntitySpawn(org.bukkit.event.entity.EntitySpawnEvent e) {
+    private void onEntitySpawn(EntitySpawnEvent e) {
         EnderDragon dragon;
         Entity entity = e.getEntity();
         if (entity instanceof EnderDragon) {
@@ -27,9 +28,9 @@ public class HarderDragon implements Listener {
         } else {
             return;
         }
-        dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(1000.0D);
-        dragon.getAttribute(Attribute.GENERIC_FLYING_SPEED).setBaseValue(25);
+        dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(EXTRA_HEALTH);
         dragon.setHealth(dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+        dragon.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 2147483647, 20, false, false));
         this.lastMilestone = dragon.getHealth();
     }
 
@@ -44,8 +45,8 @@ public class HarderDragon implements Listener {
         }
         double currentHealth = dragon.getHealth() - e.getFinalDamage();
         currentHealth = Math.min(currentHealth, dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-        if (this.lastMilestone - currentHealth >= 300.0D) {
-            this.lastMilestone -= 300.0D;
+        if (this.lastMilestone - currentHealth >= HP_THRESHOLD) {
+            this.lastMilestone -= HP_THRESHOLD;
             this.resistanceLevel++;
             this.resistanceLevel = Math.min(this.resistanceLevel, 3);
             dragon.removePotionEffect(PotionEffectType.DAMAGE_RESISTANCE);

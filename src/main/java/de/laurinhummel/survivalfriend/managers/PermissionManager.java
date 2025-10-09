@@ -10,6 +10,11 @@ import javax.annotation.Nullable;
 
 public class PermissionManager {
 
+    public static boolean checkEnabled(MenuSF.MenuItems item) {
+        if(!SF.getPlugin().getConfig().getBoolean("enabled")) return false;
+        return SF.getPlugin().getConfig().getBoolean(item.getPath());
+    }
+
     /**
      *
      * @param sender Player object to check for access level

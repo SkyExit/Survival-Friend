@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend.events;
 
 import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
+import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -15,13 +16,12 @@ public class SoloPortalFarm implements Listener {
     @EventHandler
     public void onEntityPortalEntry(EntityPortalEnterEvent event){
         if (event.getEntity() instanceof LivingEntity living) {
-            if (!SF.getPlugin().getConfig().getBoolean(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath())) {
+            if(PermissionManager.checkEnabled(MenuSF.MenuItems.SOLO_PORTAL_FARM)) {
                 List<EntityType> mobs = new  ArrayList<>();
                     mobs.add(EntityType.WITHER_SKELETON);
                     mobs.add(EntityType.CREEPER);
                     mobs.add(EntityType.IRON_GOLEM);
                     mobs.add(EntityType.ZOMBIFIED_PIGLIN);
-                    mobs.add(EntityType.PIGLIN);
                 for (EntityType mob : mobs) {
                     if (event.getEntityType() == mob) {
                         living.setRemoveWhenFarAway(false);

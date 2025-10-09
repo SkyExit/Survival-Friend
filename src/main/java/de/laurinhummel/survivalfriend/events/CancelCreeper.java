@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend.events;
 
 import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
+import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
@@ -16,7 +17,7 @@ public class CancelCreeper implements Listener {
     public void onEntityExplode(EntityExplodeEvent event) {
         Entity entity = event.getEntity();
         if (entity.getType() == EntityType.CREEPER) {
-            if(!SF.getPlugin().getConfig().getBoolean(MenuSF.MenuItems.CREEPER_EXPLOSIONS.getPath())) {
+            if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_EXPLOSIONS)) {
                 entity.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, entity.getLocation(), 0);
                 entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 1.0F);
                 event.setCancelled(true);
@@ -26,7 +27,7 @@ public class CancelCreeper implements Listener {
 
     @EventHandler
     public void onEntityDamage(EntityDamageByEntityEvent e) {
-        if(!SF.getPlugin().getConfig().getBoolean(MenuSF.MenuItems.CREEPER_DAMAGE.getPath())) {
+        if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_DAMAGE)) {
             if (e.getEntity() instanceof org.bukkit.entity.Player) {
                 if (e.getDamager().getType() == EntityType.CREEPER)
                     e.setCancelled(true);

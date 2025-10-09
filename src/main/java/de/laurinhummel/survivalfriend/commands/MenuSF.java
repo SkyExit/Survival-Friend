@@ -38,6 +38,7 @@ public class MenuSF implements CommandExecutor, Listener {
         TRAMPLING_PLAYER(32, "trampling.player"),
         TRAMPLING_MOB(33, "trampling.mob"),
         SOLO_PORTAL_FARM(19, "spf.enable"),
+        HARDER_DRAGON(40, "hd.enable"),
         TPA(25, "tpa.enable");
 
         private final int position;
@@ -60,40 +61,45 @@ public class MenuSF implements CommandExecutor, Listener {
 
         // BASIC SURVIVOR STUFF
         menu.setItem(CRAFTING_TABLE.position, createItem(Material.CRAFTING_TABLE, "CRAFTING TABLE", false,
-                ChatColor.AQUA + "This enables the /wb command",
+                ChatColor.AQUA + "This toggles the /wb command",
                 ChatColor.GRAY + "Status: " + getStatus(CRAFTING_TABLE.path)));
         menu.setItem(PATHFINDER.position, createItem(Material.COMPASS, "PATHFINDER", false,
-                ChatColor.AQUA + "This enables the /compass command",
+                ChatColor.AQUA + "This toggles the /compass command",
                 ChatColor.GRAY + "Status: " + getStatus(PATHFINDER.path)));
         menu.setItem(ENDER_CHEST.position, createItem(Material.ENDER_CHEST, "ENDER CHEST", false,
-                ChatColor.AQUA + "This enables the /ec command",
+                ChatColor.AQUA + "This toggles the /ec command",
                 ChatColor.GRAY + "Status: " + getStatus(ENDER_CHEST.path)));
 
         // ANTI CREEPER
         menu.setItem(CREEPER_EXPLOSIONS.position, createItem(Material.CREEPER_HEAD, "CREEPER EXPLOSIONS", false,
-                ChatColor.AQUA + "Should creepers be able to destroy blocks?",
+                ChatColor.AQUA + "Enable creeper block-explosion prevention",
                 ChatColor.GRAY + "Status: " + getStatus(CREEPER_EXPLOSIONS.path)));
         menu.setItem(CREEPER_DAMAGE.position, createItem(Material.TNT, "EXPLOSION DAMAGE", false,
-                ChatColor.AQUA + "Should creepers be able to damage players?",
+                ChatColor.AQUA + "Enable creeper damage to player prevention",
                 ChatColor.GRAY + "Status: " + getStatus(CREEPER_DAMAGE.path)));
 
         // CROP TRAMPLING
         menu.setItem(TRAMPLING_PLAYER.position, createItem(Material.LEATHER_BOOTS, "PLAYER TRAMPLING", false,
-                ChatColor.AQUA + "Should players be able to destroy farmland?",
+                ChatColor.AQUA + "Enable player crop trampling prevention",
                 ChatColor.GRAY + "Status: " + getStatus(TRAMPLING_PLAYER.path)));
         menu.setItem(TRAMPLING_MOB.position, createItem(Material.CHAINMAIL_BOOTS, "MOB TRAMPLING", false,
-                ChatColor.AQUA + "Should mobs be able to destroy farmland?",
+                ChatColor.AQUA + "Enable mob crop trampling prevention",
                 ChatColor.GRAY + "Status: " + getStatus(TRAMPLING_MOB.path)));
 
         // SOLO PORTAL FARM
         menu.setItem(SOLO_PORTAL_FARM.position, createItem(Material.OBSIDIAN, "SOLO PORTAL FARM", false,
-                ChatColor.AQUA + "Should mobs despawn when far away?",
+                ChatColor.AQUA + "Enable far-distance-despawn prevention",
                 ChatColor.GRAY + "Status: " + getStatus(SOLO_PORTAL_FARM.path)));
 
         // TPA
         menu.setItem(TPA.position, createItem(Material.ENDER_PEARL, "TPA", false,
-                ChatColor.AQUA + "Should players be able to send /tpa requests",
+                ChatColor.AQUA + "Enable players to send /tpa requests",
                 ChatColor.GRAY + "Status: " + getStatus(TPA.path)));
+
+        // HARDER DRAGONS
+        menu.setItem(HARDER_DRAGON.position, createItem(Material.DRAGON_WALL_HEAD, "HARDER DRAGONS", false,
+                ChatColor.AQUA + "Raise the dragons health to " + ChatColor.GOLD + SF.getPlugin().getConfig().getInt("hd.health") + ChatColor.AQUA + " HP?",
+                ChatColor.GRAY + "Status: " + getStatus(HARDER_DRAGON.path)));
 
         menu.setItem(49, createItem(Material.GREEN_TERRACOTTA, ChatColor.GRAY + "PLUGIN " + ChatColor.GREEN + "ENABLED", true));
 

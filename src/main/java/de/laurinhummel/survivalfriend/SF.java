@@ -3,6 +3,7 @@ package de.laurinhummel.survivalfriend;
 import de.laurinhummel.survivalfriend.commands.*;
 import de.laurinhummel.survivalfriend.events.CancelCreeper;
 import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
+import de.laurinhummel.survivalfriend.events.HarderDragon;
 import de.laurinhummel.survivalfriend.events.SoloPortalFarm;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -27,6 +28,7 @@ public final class SF extends JavaPlugin {
             pluginManager.registerEvents(new CancelCreeper(), this);
             pluginManager.registerEvents(new CancelCropTrampling(), this);
             pluginManager.registerEvents(new SoloPortalFarm(), this);
+            pluginManager.registerEvents(new HarderDragon(), this);
 
         getCommand("menusf").setExecutor(new MenuSF());
         getCommand("compass").setExecutor(new Compass());
@@ -37,15 +39,17 @@ public final class SF extends JavaPlugin {
 
         FileConfiguration config = this.getConfig();
             config.addDefault("enabled", true);
-            config.addDefault(MenuSF.MenuItems.CREEPER_EXPLOSIONS.getPath(), false);
-            config.addDefault(MenuSF.MenuItems.CREEPER_DAMAGE.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.TRAMPLING_PLAYER.getPath(), false);
-            config.addDefault(MenuSF.MenuItems.TRAMPLING_MOB.getPath(), false);
+            config.addDefault(MenuSF.MenuItems.CREEPER_EXPLOSIONS.getPath(), true);
+            config.addDefault(MenuSF.MenuItems.CREEPER_DAMAGE.getPath(), false);
+            config.addDefault(MenuSF.MenuItems.TRAMPLING_PLAYER.getPath(), true);
+            config.addDefault(MenuSF.MenuItems.TRAMPLING_MOB.getPath(), true);
             config.addDefault(MenuSF.MenuItems.CRAFTING_TABLE.getPath(), 3);
             config.addDefault(MenuSF.MenuItems.PATHFINDER.getPath(), 1);
             config.addDefault(MenuSF.MenuItems.ENDER_CHEST.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), true);
+            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), false);
             config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
+            config.addDefault(MenuSF.MenuItems.HARDER_DRAGON.getPath(), false);
+            config.addDefault("hd.health", 1000);
         config.options().copyDefaults(true);
         config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));
         saveConfig();
