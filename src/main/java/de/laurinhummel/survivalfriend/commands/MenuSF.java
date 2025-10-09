@@ -97,7 +97,7 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.GRAY + "Status: " + getStatus(TPA.path)));
 
         // HARDER DRAGONS
-        menu.setItem(HARDER_DRAGON.position, createItem(Material.DRAGON_WALL_HEAD, "HARDER DRAGONS", false,
+        menu.setItem(HARDER_DRAGON.position, createItem(Material.DRAGON_EGG, "HARDER DRAGONS", false,
                 ChatColor.AQUA + "Raise the dragons health to " + ChatColor.GOLD + SF.getPlugin().getConfig().getInt("hd.health") + ChatColor.AQUA + " HP?",
                 ChatColor.GRAY + "Status: " + getStatus(HARDER_DRAGON.path)));
 
