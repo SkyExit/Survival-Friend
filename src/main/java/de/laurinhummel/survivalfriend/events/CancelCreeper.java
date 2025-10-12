@@ -33,5 +33,13 @@ public class CancelCreeper implements Listener {
                     e.setCancelled(true);
             }
         }
+
+        // Prevent ItemFrame destruction when blockdamage is disabled
+        if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_EXPLOSIONS)) {
+            if (e.getEntity() instanceof org.bukkit.entity.ItemFrame) {
+                if (e.getDamager().getType() == EntityType.CREEPER)
+                    e.setCancelled(true);
+            }
+        }
     }
 }

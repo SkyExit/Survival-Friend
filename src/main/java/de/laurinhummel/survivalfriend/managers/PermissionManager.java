@@ -10,13 +10,17 @@ import javax.annotation.Nullable;
 
 public class PermissionManager {
 
+    /**
+     * Checks whether a given feature is enabled or not.
+     * @param item MenuSF.MenuItems to check for
+     * @return boolean - Whether the feature is enabled or not
+     */
     public static boolean checkEnabled(MenuSF.MenuItems item) {
         if(!SF.getPlugin().getConfig().getBoolean("enabled")) return false;
         return SF.getPlugin().getConfig().getBoolean(item.getPath());
     }
 
     /**
-     *
      * @param sender Player object to check for access level
      * @param feature Feature to check access level against
      * @return Whether the user has access to the feature

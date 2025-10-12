@@ -22,6 +22,7 @@ public class SoloPortalFarm implements Listener {
                     mobs.add(EntityType.CREEPER);
                     mobs.add(EntityType.IRON_GOLEM);
                     mobs.add(EntityType.ZOMBIFIED_PIGLIN);
+                    mobs.add(EntityType.GUARDIAN);
                 for (EntityType mob : mobs) {
                     if (event.getEntityType() == mob) {
                         living.setRemoveWhenFarAway(false);

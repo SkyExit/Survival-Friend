@@ -46,7 +46,7 @@ public final class SF extends JavaPlugin {
             config.addDefault(MenuSF.MenuItems.CRAFTING_TABLE.getPath(), 3);
             config.addDefault(MenuSF.MenuItems.PATHFINDER.getPath(), 1);
             config.addDefault(MenuSF.MenuItems.ENDER_CHEST.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), false);
+            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), true);
             config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
             config.addDefault(MenuSF.MenuItems.HARDER_DRAGON.getPath(), false);
             config.addDefault("hd.health", 1000);
