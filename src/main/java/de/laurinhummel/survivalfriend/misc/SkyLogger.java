@@ -28,6 +28,10 @@ public class SkyLogger {
         sendPrefixMessage(Bukkit.getConsoleSender(), message);
     }
 
+    public static void sendServer(String message, LogType type) {
+        Bukkit.getServer().broadcastMessage(SkyStrings.SF + type.color + message);
+    }
+
     public static void sendPlayer(Player player, String message, LogType type) {
         player.sendMessage(SkyStrings.SF + type.color + message);
     }

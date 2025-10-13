@@ -1,5 +1,6 @@
 package de.laurinhummel.survivalfriend.events;
 
+import de.laurinhummel.survivalfriend.SF;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Entity;
@@ -11,12 +12,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class HarderDragon implements Listener {
-    private static final double EXTRA_HEALTH = 1000;
-
-    private static final double HP_THRESHOLD = 300;
+    private static final double EXTRA_HEALTH = SF.getPlugin().getConfig().getInt("hd.health");
+    private static final double HP_THRESHOLD = Math.round((float) SF.getPlugin().getConfig().getInt("hd.health") / 3);
 
     private double lastMilestone = 0.0D;
-
     private int resistanceLevel = 0;
 
     @EventHandler
