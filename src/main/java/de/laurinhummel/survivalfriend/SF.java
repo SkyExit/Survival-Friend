@@ -48,6 +48,7 @@ public final class SF extends JavaPlugin {
             config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
             config.addDefault(MenuSF.MenuItems.HARDER_DRAGON.getPath(), false);
             config.addDefault("hd.health", 1000);
+            config.addDefault(MenuSF.MenuItems.TOTEM_MSG.getPath(), true);
         config.options().copyDefaults(true);
         config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));
         saveConfig();
