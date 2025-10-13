@@ -1,10 +1,7 @@
 package de.laurinhummel.survivalfriend;
 
 import de.laurinhummel.survivalfriend.commands.*;
-import de.laurinhummel.survivalfriend.events.CancelCreeper;
-import de.laurinhummel.survivalfriend.events.CancelCropTrampling;
-import de.laurinhummel.survivalfriend.events.HarderDragon;
-import de.laurinhummel.survivalfriend.events.SoloPortalFarm;
+import de.laurinhummel.survivalfriend.events.*;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -29,6 +26,7 @@ public final class SF extends JavaPlugin {
             pluginManager.registerEvents(new CancelCropTrampling(), this);
             pluginManager.registerEvents(new SoloPortalFarm(), this);
             pluginManager.registerEvents(new HarderDragon(), this);
+            pluginManager.registerEvents(new TotemPop(), this);
 
         getCommand("menusf").setExecutor(new MenuSF());
         getCommand("compass").setExecutor(new Compass());

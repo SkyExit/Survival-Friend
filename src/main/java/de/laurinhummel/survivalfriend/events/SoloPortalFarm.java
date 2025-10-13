@@ -1,6 +1,5 @@
 package de.laurinhummel.survivalfriend.events;
 
-import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import org.bukkit.entity.EntityType;
@@ -14,7 +13,7 @@ import java.util.List;
 
 public class SoloPortalFarm implements Listener {
     @EventHandler
-    public void onEntityPortalEntry(EntityPortalEnterEvent event){
+    public void onEntityPortalEntry(EntityPortalEnterEvent event) {
         if (event.getEntity() instanceof LivingEntity living) {
             if(PermissionManager.checkEnabled(MenuSF.MenuItems.SOLO_PORTAL_FARM)) {
                 List<EntityType> mobs = new  ArrayList<>();

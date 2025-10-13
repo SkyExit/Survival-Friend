@@ -39,6 +39,7 @@ public class MenuSF implements CommandExecutor, Listener {
         TRAMPLING_MOB(33, "trampling.mob"),
         SOLO_PORTAL_FARM(19, "spf.enable"),
         HARDER_DRAGON(40, "hd.enable"),
+        TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable");
 
         private final int position;
@@ -100,6 +101,11 @@ public class MenuSF implements CommandExecutor, Listener {
         menu.setItem(HARDER_DRAGON.position, createItem(Material.DRAGON_EGG, "HARDER DRAGONS", false,
                 ChatColor.AQUA + "Raise the dragons health to " + ChatColor.GOLD + SF.getPlugin().getConfig().getInt("hd.health") + ChatColor.AQUA + " HP?",
                 ChatColor.GRAY + "Status: " + getStatus(HARDER_DRAGON.path)));
+
+        // TOTEM MSG
+        menu.setItem(TOTEM_MSG.position, createItem(Material.TOTEM_OF_UNDYING, "TOTEM POP MESSAGE", false,
+                ChatColor.AQUA + "Displays a message on totem pop",
+                ChatColor.GRAY + "Status: " + getStatus(TOTEM_MSG.path)));
 
         menu.setItem(49, createItem(Material.GREEN_TERRACOTTA, ChatColor.GRAY + "PLUGIN " + ChatColor.GREEN + "ENABLED", true));
 
