@@ -36,7 +36,7 @@ public class TotemPop implements Listener {
                     // GETS ITEM NAME IF DAMAGER IS A PLAYER
                     if(damager instanceof Player && damager != player) {
                         ItemStack item = ((Player)damager).getInventory().getItemInMainHand();
-                        if(item.getItemMeta().getDisplayName() != item.getType().name()) {
+                        if((!item.getItemMeta().getDisplayName().equals(item.getType().name())) && !item.getItemMeta().getDisplayName().isEmpty()) {
                             sb.append(McColors.AQUA + " using " + McColors.RED + item.getItemMeta().getDisplayName());
                         }
                     }
