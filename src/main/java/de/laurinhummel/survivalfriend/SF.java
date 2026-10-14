@@ -3,55 +3,46 @@ package de.laurinhummel.survivalfriend;
 import de.laurinhummel.survivalfriend.commands.*;
 import de.laurinhummel.survivalfriend.events.*;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.HashMap;
-
 public final class SF extends JavaPlugin {
     private static SF plugin;
+    private Rules rules;
 
     @Override
     public void onLoad() { plugin = this; }
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+
+        rules = new Rules(this);
+        MenuSF menu = new MenuSF();
+        TPA tpa = new TPA(this);
+        Compass compass = new Compass();
         PluginManager pluginManager = Bukkit.getPluginManager();
-            pluginManager.registerEvents(new MenuSF(), this);
+            pluginManager.registerEvents(menu, this);
             pluginManager.registerEvents(new CancelCreeper(), this);
             pluginManager.registerEvents(new CancelCropTrampling(), this);
             pluginManager.registerEvents(new SoloPortalFarm(), this);
             pluginManager.registerEvents(new HarderDragon(), this);
             pluginManager.registerEvents(new TotemPop(), this);
+            pluginManager.registerEvents(rules, this);
+            pluginManager.registerEvents(tpa, this);
 
-        getCommand("menusf").setExecutor(new MenuSF());
-        getCommand("compass").setExecutor(new Compass());
-        getCommand("compass").setTabCompleter(new Compass());
+        getCommand("menusf").setExecutor(menu);
+        getCommand("compass").setExecutor(compass);
+        getCommand("compass").setTabCompleter(compass);
         getCommand("enderchest").setExecutor(new Enderchest());
         getCommand("workbench").setExecutor(new Workbench());
-        getCommand("tpa").setExecutor(new TPA());
-
-        FileConfiguration config = this.getConfig();
-            config.addDefault("enabled", true);
-            config.addDefault(MenuSF.MenuItems.CREEPER_EXPLOSIONS.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.CREEPER_DAMAGE.getPath(), false);
-            config.addDefault(MenuSF.MenuItems.TRAMPLING_PLAYER.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.TRAMPLING_MOB.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.CRAFTING_TABLE.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.PATHFINDER.getPath(), 1);
-            config.addDefault(MenuSF.MenuItems.ENDER_CHEST.getPath(), 3);
-            config.addDefault(MenuSF.MenuItems.SOLO_PORTAL_FARM.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.TPA.getPath(), true);
-            config.addDefault(MenuSF.MenuItems.HARDER_DRAGON.getPath(), false);
-            config.addDefault("hd.health", 1000);
-            config.addDefault(MenuSF.MenuItems.TOTEM_MSG.getPath(), true);
-        config.options().copyDefaults(true);
-        config.options().setHeader(Collections.singletonList("Usage: 1-Everyone  2-Admins  3-Disabled"));
-        saveConfig();
+        getCommand("tpa").setExecutor(tpa);
+        getCommand("tpa").setTabCompleter(tpa);
+        getCommand("regeln").setExecutor(rules);
+        getCommand("regeln").setTabCompleter((sender, command, alias, args) -> java.util.Collections.emptyList());
+        Bukkit.getOnlinePlayers().forEach(rules::prompt);
     }
 
     @Override
@@ -59,6 +50,5 @@ public final class SF extends JavaPlugin {
     }
 
     public static SF getPlugin() { return plugin; }
-    public static HashMap<Player, Player> tpa = new HashMap<>();
-    public static HashMap<Player, Timestamp> tpaCooldown = new HashMap<>();
+    public Rules getRules() { return rules; }
 }

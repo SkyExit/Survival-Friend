@@ -1,0 +1,31 @@
+# 1 = alle Spieler, 2 = nur Admins, 3 = deaktiviert (bei utils).
+enabled: true
+utils:
+  wb: 3
+  compass: 1
+  ec: 3
+creeper:
+  explosion: true
+  damage: false
+trampling:
+  player: true
+  mob: true
+spf:
+  enable: true
+tpa:
+  enable: true
+  cooldown-seconds: 3600
+  request-timeout-seconds: 120
+hd:
+  enable: false
+  health: 1000
+totem:
+  enable: true
+
+# Jede Regel beginnt mit einem eigenen "-". Farbcodes mit & sind erlaubt.
+# Nach Aenderungen den Server neu starten. Geaenderte Regeln erfordern neue Zustimmung.
+# Eine leere Liste (regeln: []) deaktiviert die Bewegungssperre.
+regeln:
+  - 'Behandle andere Spieler respektvoll.'
+  - 'Griefing und Diebstahl sind verboten.'
+  - 'Cheats und das Ausnutzen von Bugs sind verboten.'

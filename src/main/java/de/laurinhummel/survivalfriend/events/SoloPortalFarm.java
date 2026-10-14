@@ -8,26 +8,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumSet;
+import java.util.Set;
 
 public class SoloPortalFarm implements Listener {
+    private static final Set<EntityType> FARM_MOBS = EnumSet.of(EntityType.WITHER_SKELETON, EntityType.CREEPER,
+            EntityType.IRON_GOLEM, EntityType.ZOMBIFIED_PIGLIN, EntityType.GUARDIAN);
     @EventHandler
     public void onEntityPortalEntry(EntityPortalEnterEvent event) {
         if (event.getEntity() instanceof LivingEntity living) {
             if(PermissionManager.checkEnabled(MenuSF.MenuItems.SOLO_PORTAL_FARM)) {
-                List<EntityType> mobs = new  ArrayList<>();
-                    mobs.add(EntityType.WITHER_SKELETON);
-                    mobs.add(EntityType.CREEPER);
-                    mobs.add(EntityType.IRON_GOLEM);
-                    mobs.add(EntityType.ZOMBIFIED_PIGLIN);
-                    mobs.add(EntityType.GUARDIAN);
-                for (EntityType mob : mobs) {
-                    if (event.getEntityType() == mob) {
-                        living.setRemoveWhenFarAway(false);
-                        return;
-                    }
-                }
+                if (FARM_MOBS.contains(event.getEntityType())) living.setRemoveWhenFarAway(false);
             }
         }
     }

@@ -1,31 +1,28 @@
 package de.laurinhummel.survivalfriend.events;
 
-import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Hanging;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 
 public class CancelCreeper implements Listener {
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
         Entity entity = event.getEntity();
         if (entity.getType() == EntityType.CREEPER) {
             if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_EXPLOSIONS)) {
-                entity.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, entity.getLocation(), 0);
-                entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0F, 1.0F);
-                event.setCancelled(true);
+                event.blockList().clear();
             }
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onEntityDamage(EntityDamageByEntityEvent e) {
         if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_DAMAGE)) {
             if (e.getEntity() instanceof org.bukkit.entity.Player) {
@@ -36,10 +33,18 @@ public class CancelCreeper implements Listener {
 
         // Prevent ItemFrame destruction when blockdamage is disabled
         if(PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_EXPLOSIONS)) {
-            if (e.getEntity() instanceof org.bukkit.entity.ItemFrame) {
+            if (e.getEntity() instanceof Hanging) {
                 if (e.getDamager().getType() == EntityType.CREEPER)
                     e.setCancelled(true);
             }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onHangingBreak(HangingBreakByEntityEvent event) {
+        if (PermissionManager.checkEnabled(MenuSF.MenuItems.CREEPER_EXPLOSIONS)
+                && event.getRemover() != null && event.getRemover().getType() == EntityType.CREEPER) {
+            event.setCancelled(true);
         }
     }
 }

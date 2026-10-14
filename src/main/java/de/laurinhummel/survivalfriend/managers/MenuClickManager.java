@@ -4,22 +4,26 @@ import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.util.Objects;
-
 public class MenuClickManager {
-    int position;
+    private final int position;
 
     public MenuClickManager(int position) {
         this.position = position;
     }
 
     public void updateConfig() {
+        FileConfiguration config = SF.getPlugin().getConfig();
+        if (position == 49) {
+            config.set("enabled", !config.getBoolean("enabled"));
+            SF.getPlugin().saveConfig();
+            if (config.getBoolean("enabled")) org.bukkit.Bukkit.getOnlinePlayers().forEach(SF.getPlugin().getRules()::prompt);
+            return;
+        }
         for(MenuSF.MenuItems element : MenuSF.MenuItems.values()) {
             if(element.getPosition() != position) continue;
 
             String path = element.getPath();
-            FileConfiguration config = SF.getPlugin().getConfig();
-            String object = Objects.requireNonNull(config.get(path)).toString();
+            String object = String.valueOf(config.get(path));
 
             switch(object) {
                 case "true" -> config.set(path, false);

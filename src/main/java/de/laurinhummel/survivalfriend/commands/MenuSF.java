@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemFlag;
@@ -27,7 +28,7 @@ import static de.laurinhummel.survivalfriend.commands.MenuSF.MenuItems.*;
 
 public class MenuSF implements CommandExecutor, Listener {
 
-    private static final Inventory menu = Bukkit.createInventory(null, 6 * 9, "MenuSF");
+    private final Inventory menu = Bukkit.createInventory(null, 6 * 9, "MenuSF");
 
     public enum MenuItems{
         CRAFTING_TABLE(12, "utils.wb"),
@@ -107,7 +108,9 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "Displays a message on totem pop",
                 ChatColor.GRAY + "Status: " + getStatus(TOTEM_MSG.path)));
 
-        menu.setItem(49, createItem(Material.GREEN_TERRACOTTA, ChatColor.GRAY + "PLUGIN " + ChatColor.GREEN + "ENABLED", true));
+        boolean enabled = SF.getPlugin().getConfig().getBoolean("enabled");
+        menu.setItem(49, createItem(enabled ? Material.GREEN_TERRACOTTA : Material.RED_TERRACOTTA,
+                "PLUGIN " + (enabled ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"), enabled));
 
         Player player = (Player) sender;
             player.openInventory(menu);
@@ -141,15 +144,19 @@ public class MenuSF implements CommandExecutor, Listener {
     public void onInventoryClick(final InventoryClickEvent e) {
         if (!e.getInventory().equals(menu)) return;
         e.setCancelled(true);
+        if (e.getRawSlot() < 0 || e.getRawSlot() >= menu.getSize() || e.getClick() != ClickType.LEFT) return;
+        if (!PermissionManager.checkPermission(e.getWhoClicked(), null)) return;
 
         final ItemStack clickedItem = e.getCurrentItem();
         if (clickedItem == null || clickedItem.getType().isAir()) return;
 
-        MenuClickManager clickManager = new MenuClickManager(e.getSlot());
+        MenuClickManager clickManager = new MenuClickManager(e.getRawSlot());
             clickManager.updateConfig();
 
         Player p = (Player) e.getWhoClicked();
-            p.performCommand("menusf");
+        Bukkit.getScheduler().runTask(SF.getPlugin(), () -> {
+            if (p.isOnline() && p.getOpenInventory().getTopInventory().equals(menu)) p.performCommand("menusf");
+        });
     }
 
     @EventHandler

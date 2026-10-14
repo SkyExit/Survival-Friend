@@ -14,7 +14,7 @@ public class Enderchest implements CommandExecutor {
         if(!PermissionManager.checkPermission(sender, MenuSF.MenuItems.ENDER_CHEST)) { return true; }
 
             Player player = (Player) sender;
-                SkyLogger.sendPlayer(player, "Opening endechest...", SkyLogger.LogType.INFO);
+                SkyLogger.sendPlayer(player, "Opening enderchest...", SkyLogger.LogType.INFO);
                 player.playSound(player.getLocation(), Sound.BLOCK_ENDER_CHEST_OPEN, 1, 1);
                 player.openInventory(player.getEnderChest());
         return true;

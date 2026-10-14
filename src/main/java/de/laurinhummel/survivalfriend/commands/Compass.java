@@ -15,7 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Collections;
 
 public class Compass implements CommandExecutor, TabCompleter {
     @Override
@@ -24,12 +24,21 @@ public class Compass implements CommandExecutor, TabCompleter {
 
         Player player = (Player) sender;
         ItemStack compass = player.getInventory().getItemInMainHand();
-        if(!Objects.equals(compass, new ItemStack(Material.COMPASS))) { SkyLogger.sendPlayer(player, "Sorry, but you need to hold a compass in your main hand!", SkyLogger.LogType.ERROR); return true; }
+        if(compass.getType() != Material.COMPASS) { SkyLogger.sendPlayer(player, "Sorry, but you need to hold a compass in your main hand!", SkyLogger.LogType.ERROR); return true; }
 
         switch (args.length) {
             case 1 -> {
-                Player target = Bukkit.getServer().getPlayer(args[0]);
+                if (args[0].equalsIgnoreCase("reset")) {
+                    player.setCompassTarget(player.getWorld().getSpawnLocation());
+                    SkyLogger.sendPlayer(player, "Compass coordinates were reset to spawn.", SkyLogger.LogType.INFO);
+                    return true;
+                }
+                Player target = Bukkit.getServer().getPlayerExact(args[0]);
                 if(target != null && target.isOnline()) {
+                    if (!target.getWorld().equals(player.getWorld())) {
+                        SkyLogger.sendPlayer(player, "This player is in another world.", SkyLogger.LogType.ERROR);
+                        return true;
+                    }
                     player.setCompassTarget(target.getLocation());
                     SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + target.getName(), SkyLogger.LogType.INFO);
                 } else {
@@ -38,13 +47,13 @@ public class Compass implements CommandExecutor, TabCompleter {
             }
             case 2 -> {
                 try {
-                    int x = Integer.parseInt(args[0]);
-                    int z = Integer.parseInt(args[1]);
+                    double x = coordinate(args[0], player.getLocation().getX());
+                    double z = coordinate(args[1], player.getLocation().getZ());
 
                     player.setCompassTarget(new Location(player.getWorld(), x, 64, z));
 
                     SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + x + "/" + z,  SkyLogger.LogType.INFO);
-                } catch (Exception ex) {
+                } catch (NumberFormatException ex) {
                     SkyLogger.sendPlayer(player, "Sorry, but i couldn't read these coordinates...", SkyLogger.LogType.ERROR);
                 }
             }
@@ -62,10 +71,10 @@ public class Compass implements CommandExecutor, TabCompleter {
             params.add("~");
 
             for (Player p : Bukkit.getOnlinePlayers()) {
-                params.add(p.getName());
+                if (!(commandSender instanceof Player player) || player.canSee(p)) params.add(p.getName());
             }
 
-            return params;
+            return params.stream().filter(value -> value.regionMatches(true, 0, args[0], 0, args[0].length())).toList();
         }
         if(args.length == 2) {
             List<String> params = new ArrayList<>();
@@ -74,6 +83,14 @@ public class Compass implements CommandExecutor, TabCompleter {
             return params;
         }
 
-        return null;
+        return Collections.emptyList();
+    }
+
+    private static double coordinate(String input, double current) {
+        boolean relative = input.startsWith("~");
+        String number = relative ? input.substring(1) : input;
+        double value = relative && number.isEmpty() ? current : Double.parseDouble(number) + (relative ? current : 0);
+        if (!Double.isFinite(value) || Math.abs(value) > 30_000_000) throw new NumberFormatException("Invalid coordinate");
+        return value;
     }
 }

@@ -30,12 +30,16 @@ public class PermissionManager {
             sender.sendMessage(ChatColor.RED + "This command is for players only!");
             return false;
         }
-        else if(feature == null || getPerm(feature) == 2) {
+        if (feature != null && !SF.getPlugin().getConfig().getBoolean("enabled")) {
+            sender.sendMessage(ChatColor.RED + "Sorry, but this plugin has been disabled!");
+            return false;
+        }
+        if(feature == null || getPerm(feature) == 2) {
             if(!sender.isOp()) { sender.sendMessage(ChatColor.RED + "Sorry, but you need admin privileges to use this feature!");
                 return false;
             }
         }
-        else if(getPerm(feature) == 3) { sender.sendMessage(ChatColor.RED + "Sorry, but this feature has been disabled!");
+        else if(getPerm(feature) != 1) { sender.sendMessage(ChatColor.RED + "Sorry, but this feature has been disabled!");
             return false;
         }
         return true;
