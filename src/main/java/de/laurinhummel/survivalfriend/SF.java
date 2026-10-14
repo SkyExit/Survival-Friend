@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend;
 
 import de.laurinhummel.survivalfriend.commands.*;
 import de.laurinhummel.survivalfriend.events.*;
+import de.laurinhummel.survivalfriend.scheduling.ServerTasks;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,12 +10,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class SF extends JavaPlugin {
     private static SF plugin;
     private Rules rules;
+    private ServerTasks tasks;
 
     @Override
     public void onLoad() { plugin = this; }
 
     @Override
     public void onEnable() {
+        tasks = new ServerTasks(this);
         saveDefaultConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
@@ -31,6 +34,7 @@ public final class SF extends JavaPlugin {
             pluginManager.registerEvents(new HarderDragon(), this);
             pluginManager.registerEvents(new TotemPop(), this);
             pluginManager.registerEvents(rules, this);
+            rules.registerMountListener(pluginManager);
             pluginManager.registerEvents(tpa, this);
 
         getCommand("menusf").setExecutor(menu);
@@ -42,13 +46,15 @@ public final class SF extends JavaPlugin {
         getCommand("tpa").setTabCompleter(tpa);
         getCommand("regeln").setExecutor(rules);
         getCommand("regeln").setTabCompleter((sender, command, alias, args) -> java.util.Collections.emptyList());
-        Bukkit.getOnlinePlayers().forEach(rules::prompt);
+        Bukkit.getOnlinePlayers().forEach(player -> tasks.execute(player, () -> rules.prompt(player)));
     }
 
     @Override
     public void onDisable() {
+        if (tasks != null) tasks.close();
     }
 
     public static SF getPlugin() { return plugin; }
     public Rules getRules() { return rules; }
+    public ServerTasks getTasks() { return tasks; }
 }

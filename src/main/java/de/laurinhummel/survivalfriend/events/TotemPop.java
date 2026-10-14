@@ -1,5 +1,6 @@
 package de.laurinhummel.survivalfriend.events;
 
+import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.misc.McColors;
@@ -30,17 +31,22 @@ public class TotemPop implements Listener {
                 // IS THE DAMAGER AN ENTITY?
                 if(event.getEntity().getLastDamageCause() instanceof EntityDamageByEntityEvent entityEvent) {
                     Entity damager = entityEvent.getDamager();
-                    if (damager instanceof Projectile projectile && projectile.getShooter() instanceof Entity shooter) {
+                    if (SF.getPlugin().getTasks().owns(damager) && damager instanceof Projectile projectile
+                            && projectile.getShooter() instanceof Entity shooter) {
                         damager = shooter;
                     }
+                    // A projectile's shooter can be in a different Folia region.
+                    boolean ownsDamager = SF.getPlugin().getTasks().owns(damager);
+                    String damagerName = ownsDamager || damager instanceof Player ? damager.getName()
+                            : damager.getType().name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
                     sb.append(switch (entityEvent.getCause()) {
-                        case ENTITY_EXPLOSION -> McColors.RED + "an exploding " + damager.getName();
-                        case PROJECTILE -> McColors.RED + damager.getName() + McColors.AQUA + "'s projectile";
-                        default -> McColors.RED + damager.getName();
+                        case ENTITY_EXPLOSION -> McColors.RED + "an exploding " + damagerName;
+                        case PROJECTILE -> McColors.RED + damagerName + McColors.AQUA + "'s projectile";
+                        default -> McColors.RED + damagerName;
                     });
 
                     // GETS ITEM NAME IF DAMAGER IS A PLAYER
-                    if(entityEvent.getCause() != EntityDamageEvent.DamageCause.PROJECTILE && damager instanceof Player && damager != player) {
+                    if(ownsDamager && entityEvent.getCause() != EntityDamageEvent.DamageCause.PROJECTILE && damager instanceof Player && damager != player) {
                         ItemStack item = ((Player)damager).getInventory().getItemInMainHand();
                         ItemMeta meta = item.getItemMeta();
                         if(meta != null && meta.hasDisplayName()) {

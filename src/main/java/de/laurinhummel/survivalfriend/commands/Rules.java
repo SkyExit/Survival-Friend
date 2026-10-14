@@ -1,7 +1,9 @@
 package de.laurinhummel.survivalfriend.commands;
 
 import de.laurinhummel.survivalfriend.SF;
+import de.laurinhummel.survivalfriend.compat.ServerApi;
 import de.laurinhummel.survivalfriend.managers.RulesAgreement;
+import de.laurinhummel.survivalfriend.managers.ConfigAccess;
 import de.laurinhummel.survivalfriend.misc.SkyLogger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -16,7 +18,8 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.spigotmc.event.entity.EntityMountEvent;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.plugin.PluginManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +59,7 @@ public final class Rules implements CommandExecutor, Listener {
     }
 
     public boolean requiresAcceptance(Player player) {
-        return plugin.getConfig().getBoolean("enabled") && !agreement.getRules().isEmpty()
+        return ConfigAccess.enabled(plugin, "enabled") && !agreement.getRules().isEmpty()
                 && !agreement.hasAccepted(player.getUniqueId());
     }
 
@@ -64,7 +67,7 @@ public final class Rules implements CommandExecutor, Listener {
         if (!plugin.isEnabled() || !requiresAcceptance(player)) return;
         player.leaveVehicle();
         SkyLogger.sendPlayer(player, "Bitte akzeptiere zuerst alle Serverregeln mit /regeln.", SkyLogger.LogType.WARNING);
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTasks().later(player, () -> {
             if (player.isOnline() && !player.isDead() && requiresAcceptance(player)) open(player, 0);
         });
     }
@@ -141,7 +144,7 @@ public final class Rules implements CommandExecutor, Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getView().getTopInventory().getHolder() instanceof RulesMenu menu)) return;
+        if (!(ServerApi.topInventory(event.getView()).getHolder() instanceof RulesMenu menu)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player) || !menu.owner.equals(player.getUniqueId())) return;
         if (event.getClick() != ClickType.LEFT || event.getRawSlot() < 0 || event.getRawSlot() >= 54) return;
@@ -154,20 +157,20 @@ public final class Rules implements CommandExecutor, Listener {
                 return;
             }
             if (!agreement.hasAccepted(player.getUniqueId()) && !saveAcceptance(player)) return;
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (player.isOnline() && player.getOpenInventory().getTopInventory() == menu.inventory) player.closeInventory();
+            plugin.getTasks().later(player, () -> {
+                if (player.isOnline() && ServerApi.topInventory(player.getOpenInventory()) == menu.inventory) player.closeInventory();
             });
             return;
         } else if (slot != 45 && slot != 53) {
             return;
         }
         int page = menu.page + (slot == 45 ? -1 : slot == 53 ? 1 : 0);
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            if (player.isOnline() && player.getOpenInventory().getTopInventory() == menu.inventory) open(player, page);
+        plugin.getTasks().later(player, () -> {
+            if (player.isOnline() && ServerApi.topInventory(player.getOpenInventory()) == menu.inventory) open(player, page);
         });
     }
 
-    private boolean saveAcceptance(Player player) {
+    private synchronized boolean saveAcceptance(Player player) {
         String path = "players." + player.getUniqueId();
         Object previous = data.get(path);
         data.set(path, agreement.getRevision());
@@ -202,16 +205,16 @@ public final class Rules implements CommandExecutor, Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
-        if (event.getView().getTopInventory().getHolder() instanceof RulesMenu) event.setCancelled(true);
+        if (ServerApi.topInventory(event.getView()).getHolder() instanceof RulesMenu) event.setCancelled(true);
     }
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         if (!plugin.isEnabled() || !(event.getInventory().getHolder() instanceof RulesMenu menu)
                 || !(event.getPlayer() instanceof Player player)) return;
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        plugin.getTasks().later(player, () -> {
             if (player.isOnline() && !player.isDead() && requiresAcceptance(player)
-                    && !(player.getOpenInventory().getTopInventory().getHolder() instanceof RulesMenu)) {
+                    && !(ServerApi.topInventory(player.getOpenInventory()).getHolder() instanceof RulesMenu)) {
                 open(player, menu.page);
             }
         });
@@ -250,9 +253,14 @@ public final class Rules implements CommandExecutor, Listener {
                 || from.getY() != to.getY() || from.getZ() != to.getZ());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onMount(EntityMountEvent event) {
-        if (event.getEntity() instanceof Player player && requiresAcceptance(player)) event.setCancelled(true);
+    public void registerMountListener(PluginManager manager) {
+        manager.registerEvent(ServerApi.mountEventType(), this, EventPriority.HIGHEST,
+                (listener, event) -> onMount((EntityEvent) event), plugin, true);
+    }
+
+    public void onMount(EntityEvent event) {
+        if (event instanceof Cancellable cancellable && event.getEntity() instanceof Player player
+                && requiresAcceptance(player)) cancellable.setCancelled(true);
     }
 
     private static final class RulesMenu implements InventoryHolder {

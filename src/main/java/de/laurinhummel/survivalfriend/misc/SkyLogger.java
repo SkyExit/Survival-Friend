@@ -1,5 +1,6 @@
 package de.laurinhummel.survivalfriend.misc;
 
+import de.laurinhummel.survivalfriend.SF;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,7 +30,15 @@ public class SkyLogger {
     }
 
     public static void sendServer(String message, LogType type) {
-        Bukkit.getServer().broadcastMessage(SkyStrings.SF + type.color + message);
+        String formatted = SkyStrings.SF + type.color + message;
+        if (!SF.getPlugin().getTasks().hasEntityScheduler()) {
+            Bukkit.getServer().broadcastMessage(formatted);
+            return;
+        }
+        Bukkit.getOnlinePlayers().forEach(player -> SF.getPlugin().getTasks().execute(player, () -> {
+            if (player.isOnline() && player.hasPermission("bukkit.broadcast.user")) player.sendMessage(formatted);
+        }));
+        Bukkit.getConsoleSender().sendMessage(formatted);
     }
 
     public static void sendPlayer(Player player, String message, LogType type) {

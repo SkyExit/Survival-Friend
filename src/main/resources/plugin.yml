@@ -2,6 +2,7 @@ name: SurvivalFriend
 version: ${project.version}
 main: de.laurinhummel.survivalfriend.SF
 api-version: '1.19'
+folia-supported: true
 
 commands:
   regeln:

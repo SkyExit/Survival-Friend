@@ -1,11 +1,11 @@
 package de.laurinhummel.survivalfriend.events;
 
 import de.laurinhummel.survivalfriend.SF;
+import de.laurinhummel.survivalfriend.compat.ServerApi;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
-import org.bukkit.Bukkit;
+import de.laurinhummel.survivalfriend.managers.ConfigAccess;
 import org.bukkit.NamespacedKey;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.EnderDragon;
 import org.bukkit.event.EventHandler;
@@ -24,9 +24,9 @@ public class HarderDragon implements Listener {
     public void onEntitySpawn(EntitySpawnEvent event) {
         if (!PermissionManager.checkEnabled(MenuSF.MenuItems.HARDER_DRAGON)
                 || !(event.getEntity() instanceof EnderDragon dragon)) return;
-        AttributeInstance health = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = dragon.getAttribute(ServerApi.MAX_HEALTH);
         if (health == null) return;
-        double configuredHealth = SF.getPlugin().getConfig().getDouble("hd.health", 1000);
+        double configuredHealth = ConfigAccess.read(SF.getPlugin(), config -> config.getDouble("hd.health", 1000));
         if (!Double.isFinite(configuredHealth) || configuredHealth <= 0) {
             SF.getPlugin().getLogger().warning("Invalid hd.health; using 1000 HP.");
             configuredHealth = 1000;
@@ -43,15 +43,15 @@ public class HarderDragon implements Listener {
                 || !(event.getEntity() instanceof EnderDragon dragon)
                 || !dragon.getPersistentDataContainer().has(resistance, PersistentDataType.INTEGER)) return;
         // Inspect actual health after Bukkit applies damage; never apply it a second time.
-        Bukkit.getScheduler().runTask(SF.getPlugin(), () -> {
+        SF.getPlugin().getTasks().later(dragon, () -> {
             if (!dragon.isValid() || dragon.isDead() || !PermissionManager.checkEnabled(MenuSF.MenuItems.HARDER_DRAGON)) return;
-            AttributeInstance health = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            AttributeInstance health = dragon.getAttribute(ServerApi.MAX_HEALTH);
             if (health == null || health.getValue() <= 0) return;
             int level = Math.min(3, (int) ((health.getValue() - dragon.getHealth()) / (health.getValue() / 3)));
             int previous = dragon.getPersistentDataContainer().getOrDefault(resistance, PersistentDataType.INTEGER, 0);
             if (level <= previous) return;
             dragon.getPersistentDataContainer().set(resistance, PersistentDataType.INTEGER, level);
-            dragon.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, level - 1, false, false));
+            dragon.addPotionEffect(new PotionEffect(ServerApi.RESISTANCE, Integer.MAX_VALUE, level - 1, false, false));
         });
     }
 }

@@ -1,16 +1,16 @@
 package de.laurinhummel.survivalfriend.commands;
 
 import de.laurinhummel.survivalfriend.SF;
+import de.laurinhummel.survivalfriend.compat.ServerApi;
 import de.laurinhummel.survivalfriend.managers.MenuClickManager;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
+import de.laurinhummel.survivalfriend.managers.ConfigAccess;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,17 +18,24 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
+import java.util.UUID;
 
 import static de.laurinhummel.survivalfriend.commands.MenuSF.MenuItems.*;
 
 public class MenuSF implements CommandExecutor, Listener {
 
-    private final Inventory menu = Bukkit.createInventory(null, 6 * 9, "MenuSF");
+    private static final class AdminMenu implements InventoryHolder {
+        private final UUID owner;
+        private Inventory inventory;
+        private AdminMenu(UUID owner) { this.owner = owner; }
+        @Override public Inventory getInventory() { return inventory; }
+    }
 
     public enum MenuItems{
         CRAFTING_TABLE(12, "utils.wb"),
@@ -56,6 +63,11 @@ public class MenuSF implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if(!PermissionManager.checkPermission(sender, null)) { return true; }
+
+        Player player = (Player) sender;
+        AdminMenu holder = new AdminMenu(player.getUniqueId());
+        Inventory menu = Bukkit.createInventory(holder, 6 * 9, "MenuSF");
+        holder.inventory = menu;
 
         for(int i : new int[]{0,1,9,7,8,17,36,45,46,44,53,52}) {
             menu.setItem(i, createItem(Material.GRAY_STAINED_GLASS_PANE, "PLACEHOLDER", false, ""));
@@ -100,7 +112,7 @@ public class MenuSF implements CommandExecutor, Listener {
 
         // HARDER DRAGONS
         menu.setItem(HARDER_DRAGON.position, createItem(Material.DRAGON_EGG, "HARDER DRAGONS", false,
-                ChatColor.AQUA + "Raise the dragons health to " + ChatColor.GOLD + SF.getPlugin().getConfig().getInt("hd.health") + ChatColor.AQUA + " HP?",
+                ChatColor.AQUA + "Raise the dragons health to " + ChatColor.GOLD + ConfigAccess.integer(SF.getPlugin(), "hd.health") + ChatColor.AQUA + " HP?",
                 ChatColor.GRAY + "Status: " + getStatus(HARDER_DRAGON.path)));
 
         // TOTEM MSG
@@ -108,22 +120,21 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "Displays a message on totem pop",
                 ChatColor.GRAY + "Status: " + getStatus(TOTEM_MSG.path)));
 
-        boolean enabled = SF.getPlugin().getConfig().getBoolean("enabled");
+        boolean enabled = ConfigAccess.enabled(SF.getPlugin(), "enabled");
         menu.setItem(49, createItem(enabled ? Material.GREEN_TERRACOTTA : Material.RED_TERRACOTTA,
                 "PLUGIN " + (enabled ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"), enabled));
 
-        Player player = (Player) sender;
-            player.openInventory(menu);
+        player.openInventory(menu);
 
         return true;
     }
 
     private String getStatus(String type) {
-        FileConfiguration config = SF.getPlugin().getConfig();
-        if(config.getBoolean(type) || config.getInt(type) == 1) { return ChatColor.GREEN + "ENABLED"; }
-        if(config.getInt(type) == 2) { return ChatColor.YELLOW + "ADMINS ONLY"; }
-        if(!(config.getBoolean(type)) || config.getInt(type) == 3) { return ChatColor.RED + "DISABLED"; }
-        return null;
+        return ConfigAccess.read(SF.getPlugin(), config -> {
+            if(config.getBoolean(type) || config.getInt(type) == 1) return ChatColor.GREEN + "ENABLED";
+            if(config.getInt(type) == 2) return ChatColor.YELLOW + "ADMINS ONLY";
+            return ChatColor.RED + "DISABLED";
+        });
     }
 
     private ItemStack createItem(Material material, String name, boolean enchanted, String... lore) {
@@ -133,7 +144,7 @@ public class MenuSF implements CommandExecutor, Listener {
             itemMeta.setDisplayName(ChatColor.GOLD + name);
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             itemMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            if(enchanted) itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, true);
+            if(enchanted) itemMeta.addEnchant(ServerApi.POWER, 1, true);
             itemMeta.setLore(Arrays.asList(lore));
         item.setItemMeta(itemMeta);
 
@@ -142,8 +153,10 @@ public class MenuSF implements CommandExecutor, Listener {
 
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
-        if (!e.getInventory().equals(menu)) return;
+        if (!(e.getInventory().getHolder() instanceof AdminMenu holder)) return;
+        Inventory menu = holder.inventory;
         e.setCancelled(true);
+        if (!holder.owner.equals(e.getWhoClicked().getUniqueId())) return;
         if (e.getRawSlot() < 0 || e.getRawSlot() >= menu.getSize() || e.getClick() != ClickType.LEFT) return;
         if (!PermissionManager.checkPermission(e.getWhoClicked(), null)) return;
 
@@ -154,14 +167,14 @@ public class MenuSF implements CommandExecutor, Listener {
             clickManager.updateConfig();
 
         Player p = (Player) e.getWhoClicked();
-        Bukkit.getScheduler().runTask(SF.getPlugin(), () -> {
-            if (p.isOnline() && p.getOpenInventory().getTopInventory().equals(menu)) p.performCommand("menusf");
+        SF.getPlugin().getTasks().later(p, () -> {
+            if (p.isOnline() && ServerApi.topInventory(p.getOpenInventory()).equals(menu)) p.performCommand("menusf");
         });
     }
 
     @EventHandler
     public void onInventoryClick(final InventoryDragEvent e) {
-        if (e.getInventory().equals(menu)) {
+        if (e.getInventory().getHolder() instanceof AdminMenu) {
             e.setCancelled(true);
         }
     }

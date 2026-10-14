@@ -31,21 +31,21 @@ public final class RulesAgreement {
 
     public List<String> getRules() { return rules; }
     public String getRevision() { return revision; }
-    public boolean hasAccepted(UUID player) { return revision.equals(accepted.get(player)); }
-    public void restore(UUID player, String revision) { accepted.put(player, revision); }
-    public void forgetPending(UUID player) { confirmed.remove(player); }
+    public synchronized boolean hasAccepted(UUID player) { return revision.equals(accepted.get(player)); }
+    public synchronized void restore(UUID player, String revision) { accepted.put(player, revision); }
+    public synchronized void forgetPending(UUID player) { confirmed.remove(player); }
 
-    public boolean isConfirmed(UUID player, int index) {
+    public synchronized boolean isConfirmed(UUID player, int index) {
         return hasAccepted(player) || confirmed.getOrDefault(player, Collections.emptySet()).contains(index);
     }
 
-    public void confirm(UUID player, int index) {
+    public synchronized void confirm(UUID player, int index) {
         if (index >= 0 && index < rules.size()) {
             confirmed.computeIfAbsent(player, ignored -> new HashSet<>()).add(index);
         }
     }
 
-    public boolean allConfirmed(UUID player) {
+    public synchronized boolean allConfirmed(UUID player) {
         return hasAccepted(player) || confirmed.getOrDefault(player, Collections.emptySet()).size() == rules.size();
     }
 }

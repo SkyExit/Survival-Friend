@@ -1,9 +1,10 @@
 package de.laurinhummel.survivalfriend.managers;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import java.util.*;
 import java.util.stream.IntStream;
-import static org.junit.Assert.*;
+import java.util.concurrent.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class RulesAgreementTest {
     private final UUID player = UUID.randomUUID();
@@ -66,5 +67,28 @@ public class RulesAgreementTest {
         rules.clear();
         assertEquals(List.of("One"), agreement.getRules());
         assertTrue(new RulesAgreement(Collections.emptyList()).allConfirmed(player));
+    }
+
+    @Test @org.junit.jupiter.api.Timeout(5)
+    public void parallelConfirmationsKeepEveryPlayersConsentSeparate() throws Exception {
+        RulesAgreement agreement = new RulesAgreement(IntStream.range(0, 60).mapToObj(i -> "Rule " + i).toList());
+        List<UUID> players = IntStream.range(0, 32).mapToObj(i -> UUID.randomUUID()).toList();
+        ExecutorService regions = Executors.newFixedThreadPool(8);
+        try {
+            List<Future<?>> confirmations = new ArrayList<>();
+            for (UUID id : players) for (int i = 0; i < 60; i++) {
+                int index = i;
+                confirmations.add(regions.submit(() -> agreement.confirm(id, index)));
+            }
+            for (Future<?> confirmation : confirmations) confirmation.get(2, TimeUnit.SECONDS);
+            for (UUID id : players) {
+                assertTrue(agreement.allConfirmed(id));
+                assertFalse(agreement.hasAccepted(id));
+            }
+            agreement.restore(players.get(0), agreement.getRevision());
+            assertFalse(agreement.hasAccepted(players.get(1)));
+        } finally {
+            regions.shutdownNow();
+        }
     }
 }

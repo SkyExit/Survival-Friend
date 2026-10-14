@@ -1,5 +1,6 @@
 package de.laurinhummel.survivalfriend.commands;
 
+import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.misc.SkyLogger;
 import org.bukkit.Bukkit;
@@ -35,12 +36,20 @@ public class Compass implements CommandExecutor, TabCompleter {
                 }
                 Player target = Bukkit.getServer().getPlayerExact(args[0]);
                 if(target != null && target.isOnline()) {
-                    if (!target.getWorld().equals(player.getWorld())) {
-                        SkyLogger.sendPlayer(player, "This player is in another world.", SkyLogger.LogType.ERROR);
-                        return true;
-                    }
-                    player.setCompassTarget(target.getLocation());
-                    SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + target.getName(), SkyLogger.LogType.INFO);
+                    SF.getPlugin().getTasks().execute(target, () -> {
+                        if (!target.isOnline()) return;
+                        Location destination = target.getLocation().clone();
+                        String name = target.getName();
+                        SF.getPlugin().getTasks().execute(player, () -> {
+                            if (!player.isOnline() || !PermissionManager.checkPermission(player, MenuSF.MenuItems.PATHFINDER)) return;
+                            if (!destination.getWorld().equals(player.getWorld())) {
+                                SkyLogger.sendPlayer(player, "This player is in another world.", SkyLogger.LogType.ERROR);
+                                return;
+                            }
+                            player.setCompassTarget(destination);
+                            SkyLogger.sendPlayer(player, "Compass coordinates were set to " + ChatColor.GOLD + name, SkyLogger.LogType.INFO);
+                        });
+                    });
                 } else {
                     SkyLogger.sendPlayer(player, "Sorry, but this player is not online...", SkyLogger.LogType.ERROR);
                 }

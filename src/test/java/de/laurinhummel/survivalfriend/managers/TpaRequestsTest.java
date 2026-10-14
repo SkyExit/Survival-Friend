@@ -1,9 +1,10 @@
 package de.laurinhummel.survivalfriend.managers;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
-import static org.junit.Assert.*;
+import java.util.concurrent.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TpaRequestsTest {
     private final AtomicLong clock = new AtomicLong(1000);
@@ -57,5 +58,69 @@ public class TpaRequestsTest {
         assertFalse(requests.isPending(sender, recipient));
         assertFalse(requests.isPending(recipient, other));
         assertTrue(requests.remainingCooldownMillis(recipient) > 0);
+    }
+
+    @Test
+    public void asynchronousAcceptanceCanOnlyBeReservedOnceAndFailureAllowsRetry() {
+        requests.send(sender, recipient);
+        TpaRequests.Request attempt = requests.begin(sender, recipient);
+        assertNotNull(attempt);
+        assertNull(requests.begin(sender, recipient));
+        assertTrue(requests.isActive(attempt));
+        requests.finish(attempt, false);
+        TpaRequests.Request retry = requests.begin(sender, recipient);
+        assertNotNull(retry);
+        requests.finish(retry, true);
+        assertFalse(requests.isPending(sender, recipient));
+    }
+
+    @Test
+    public void oldTeleportCompletionCannotConsumeNewRequestAfterDisconnect() {
+        TpaRequests noCooldown = new TpaRequests(clock::get, 120_000, 0);
+        noCooldown.send(sender, recipient);
+        TpaRequests.Request old = noCooldown.begin(sender, recipient);
+        assertFalse(noCooldown.send(sender, UUID.randomUUID()));
+        noCooldown.disconnect(recipient);
+        assertFalse(noCooldown.isActive(old));
+        assertTrue(noCooldown.send(sender, recipient));
+        noCooldown.finish(old, true);
+        assertTrue(noCooldown.isPending(sender, recipient));
+    }
+
+    @Test
+    public void reservationExpiresBeforeScheduledTeleportStarts() {
+        requests.send(sender, recipient);
+        TpaRequests.Request attempt = requests.begin(sender, recipient);
+        clock.addAndGet(120_000);
+        assertFalse(requests.isActive(attempt));
+        requests.finish(attempt, false);
+        assertNull(requests.begin(sender, recipient));
+    }
+
+    @Test @org.junit.jupiter.api.Timeout(5)
+    public void simultaneousRegionRequestsRespectCooldownAndReserveOnlyOnce() throws Exception {
+        ExecutorService regions = Executors.newFixedThreadPool(8);
+        try {
+            CountDownLatch ready = new CountDownLatch(8);
+            CountDownLatch start = new CountDownLatch(1);
+            java.util.List<Future<Boolean>> sends = new java.util.ArrayList<>();
+            for (int i = 0; i < 8; i++) sends.add(regions.submit(() -> {
+                ready.countDown();
+                start.await();
+                return requests.send(sender, recipient);
+            }));
+            assertTrue(ready.await(1, TimeUnit.SECONDS));
+            start.countDown();
+            int sent = 0;
+            for (Future<Boolean> result : sends) if (result.get(1, TimeUnit.SECONDS)) sent++;
+            assertEquals(1, sent);
+            java.util.List<Future<TpaRequests.Request>> accepts = new java.util.ArrayList<>();
+            for (int i = 0; i < 8; i++) accepts.add(regions.submit(() -> requests.begin(sender, recipient)));
+            int reserved = 0;
+            for (Future<TpaRequests.Request> result : accepts) if (result.get(1, TimeUnit.SECONDS) != null) reserved++;
+            assertEquals(1, reserved);
+        } finally {
+            regions.shutdownNow();
+        }
     }
 }

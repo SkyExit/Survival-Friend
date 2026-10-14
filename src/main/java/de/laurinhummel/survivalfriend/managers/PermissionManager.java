@@ -6,8 +6,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
-
 public class PermissionManager {
 
     /**
@@ -16,8 +14,7 @@ public class PermissionManager {
      * @return boolean - Whether the feature is enabled or not
      */
     public static boolean checkEnabled(MenuSF.MenuItems item) {
-        if(!SF.getPlugin().getConfig().getBoolean("enabled")) return false;
-        return SF.getPlugin().getConfig().getBoolean(item.getPath());
+        return ConfigAccess.read(SF.getPlugin(), config -> config.getBoolean("enabled") && config.getBoolean(item.getPath()));
     }
 
     /**
@@ -25,12 +22,12 @@ public class PermissionManager {
      * @param feature Feature to check access level against
      * @return Whether the user has access to the feature
      */
-    public static boolean checkPermission(CommandSender sender,  @Nullable MenuSF.MenuItems feature) {
+    public static boolean checkPermission(CommandSender sender, MenuSF.MenuItems feature) {
         if(!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "This command is for players only!");
             return false;
         }
-        if (feature != null && !SF.getPlugin().getConfig().getBoolean("enabled")) {
+        if (feature != null && !ConfigAccess.enabled(SF.getPlugin(), "enabled")) {
             sender.sendMessage(ChatColor.RED + "Sorry, but this plugin has been disabled!");
             return false;
         }
@@ -51,7 +48,7 @@ public class PermissionManager {
      * @return access level of the requested function
      */
     private static int getPerm(MenuSF.MenuItems item) {
-        Object o = SF.getPlugin().getConfig().get(item.getPath());
+        Object o = ConfigAccess.read(SF.getPlugin(), config -> config.get(item.getPath()));
 
         if(o instanceof Integer) return (int) o;
         if(o instanceof Boolean) return (boolean) o ? 1 : 3;

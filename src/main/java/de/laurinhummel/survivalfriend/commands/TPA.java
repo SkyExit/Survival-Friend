@@ -3,6 +3,7 @@ package de.laurinhummel.survivalfriend.commands;
 import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.managers.TpaRequests;
+import de.laurinhummel.survivalfriend.managers.ConfigAccess;
 import de.laurinhummel.survivalfriend.misc.McColors;
 import de.laurinhummel.survivalfriend.misc.SkyLogger;
 import de.laurinhummel.survivalfriend.misc.SkyStrings;
@@ -11,6 +12,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,8 +29,8 @@ public class TPA implements CommandExecutor, TabCompleter, Listener {
     public TPA(SF plugin) {
         this.plugin = plugin;
         requests = new TpaRequests(System::currentTimeMillis,
-                Math.max(1, plugin.getConfig().getInt("tpa.request-timeout-seconds")) * 1000L,
-                Math.max(0, plugin.getConfig().getInt("tpa.cooldown-seconds")) * 1000L);
+                Math.max(1, ConfigAccess.integer(plugin, "tpa.request-timeout-seconds")) * 1000L,
+                Math.max(0, ConfigAccess.integer(plugin, "tpa.cooldown-seconds")) * 1000L);
     }
 
     @Override
@@ -53,19 +55,39 @@ public class TPA implements CommandExecutor, TabCompleter, Listener {
             return true;
         }
         if (args.length == 2) {
-            if (!requests.isPending(target.getUniqueId(), player.getUniqueId())) {
-                SkyLogger.sendPlayer(player, "No pending request from " + target.getName() + " (it may have expired).", SkyLogger.LogType.ERROR);
+            TpaRequests.Request request = requests.begin(target.getUniqueId(), player.getUniqueId());
+            if (request == null) {
+                SkyLogger.sendPlayer(player, "No available request from " + target.getName() + " (expired or already being accepted).", SkyLogger.LogType.ERROR);
                 return true;
             }
-            if (!target.teleport(player.getLocation())) {
-                SkyLogger.sendPlayer(player, "The teleport was cancelled. The request is still pending.", SkyLogger.LogType.ERROR);
-                return true;
-            }
-            requests.complete(target.getUniqueId());
-            player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation(), 20);
-            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            SkyLogger.sendPlayer(player, McColors.GOLD + target.getName() + McColors.AQUA + " has been teleported to you!", SkyLogger.LogType.INFO);
-            SkyLogger.sendPlayer(target, "You have been teleported to " + McColors.GOLD + player.getName() + McColors.AQUA + "!", SkyLogger.LogType.INFO);
+            Location destination = player.getLocation().clone();
+            String recipientName = player.getName();
+            String requesterName = target.getName();
+            plugin.getTasks().execute(target, () -> {
+                if (!requests.isActive(request) || !player.isOnline() || !target.isOnline()
+                        || !PermissionManager.checkEnabled(MenuSF.MenuItems.TPA)
+                        || plugin.getRules().requiresAcceptance(target) || plugin.getRules().requiresAcceptance(player)) {
+                    requests.finish(request, false);
+                    return;
+                }
+                plugin.getTasks().teleport(target, destination).whenComplete((success, error) -> {
+                    boolean teleported = error == null && Boolean.TRUE.equals(success);
+                    requests.finish(request, teleported);
+                    if (error != null) plugin.getLogger().log(java.util.logging.Level.WARNING, "TPA teleport failed", error);
+                    plugin.getTasks().execute(player, () -> {
+                        if (!player.isOnline()) return;
+                        if (teleported) SkyLogger.sendPlayer(player, McColors.GOLD + requesterName + McColors.AQUA + " has been teleported to you!", SkyLogger.LogType.INFO);
+                        else SkyLogger.sendPlayer(player, "The teleport failed or was cancelled. You can retry while the request is valid.", SkyLogger.LogType.ERROR);
+                    });
+                    if (teleported) plugin.getTasks().execute(target, () -> {
+                        if (!target.isOnline()) return;
+                        Location arrival = target.getLocation();
+                        target.getWorld().spawnParticle(Particle.PORTAL, arrival, 20);
+                        target.getWorld().playSound(arrival, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                        SkyLogger.sendPlayer(target, "You have been teleported to " + McColors.GOLD + recipientName + McColors.AQUA + "!", SkyLogger.LogType.INFO);
+                    });
+                });
+            }, () -> requests.finish(request, false));
             return true;
         }
         long remaining = requests.remainingCooldownMillis(player.getUniqueId());
@@ -79,7 +101,9 @@ public class TPA implements CommandExecutor, TabCompleter, Listener {
         TextComponent text = new TextComponent(SkyStrings.SF + McColors.AQUA + "TPA request from " + McColors.GOLD
                 + player.getName() + McColors.AQUA + "!" + McColors.GREEN + "   [ACCEPT]");
         text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpa " + player.getName() + " accept"));
-        target.spigot().sendMessage(text);
+        plugin.getTasks().execute(target, () -> {
+            if (target.isOnline() && requests.isPending(player.getUniqueId(), target.getUniqueId())) target.spigot().sendMessage(text);
+        }, () -> requests.disconnect(target.getUniqueId()));
         return true;
     }
 

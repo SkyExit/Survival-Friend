@@ -1,6 +1,9 @@
 package de.laurinhummel.survivalfriend.commands;
 
 import de.laurinhummel.survivalfriend.SF;
+import de.laurinhummel.survivalfriend.scheduling.ServerTasks;
+import de.laurinhummel.survivalfriend.compat.ServerApi;
+import de.laurinhummel.survivalfriend.TestServerFixtures;
 import org.bukkit.*;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -9,10 +12,11 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
-import org.spigotmc.event.entity.EntityMountEvent;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.entity.EntityEvent;
 
 import java.io.File;
 import java.util.*;
@@ -20,11 +24,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import java.util.stream.IntStream;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 public class RulesTest {
-    @Rule public TemporaryFolder folder = new TemporaryFolder();
+    @TempDir(factory = TestServerFixtures.WorkspaceTempDir.class) public File folder;
     private SF plugin;
     private Player player;
     private Rules rules;
@@ -34,15 +38,16 @@ public class RulesTest {
     private AtomicReference<Inventory> top;
     private final List<Runnable> tasks = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
         plugin = mock(SF.class);
         when(plugin.isEnabled()).thenReturn(true);
+        when(plugin.getTasks()).thenReturn(new ServerTasks(plugin));
         config = new YamlConfiguration();
         config.set("enabled", true);
         config.set("regeln", IntStream.rangeClosed(1, 46).mapToObj(i -> "Regel " + i).toList());
         when(plugin.getConfig()).thenReturn(config);
-        when(plugin.getDataFolder()).thenReturn(folder.getRoot());
+        when(plugin.getDataFolder()).thenReturn(folder);
         when(plugin.getLogger()).thenReturn(mock(Logger.class));
         player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
@@ -55,6 +60,7 @@ public class RulesTest {
         doAnswer(invocation -> { top.set(mock(Inventory.class)); return null; }).when(player).closeInventory();
 
         bukkit = mockStatic(Bukkit.class);
+        TestServerFixtures.registries(bukkit);
         BukkitScheduler scheduler = mock(BukkitScheduler.class);
         bukkit.when(Bukkit::getScheduler).thenReturn(scheduler);
         doAnswer(invocation -> { tasks.add(invocation.getArgument(1)); return null; })
@@ -68,7 +74,7 @@ public class RulesTest {
         });
         when(factory.isApplicable(any(ItemMeta.class), any(Material.class))).thenReturn(true);
         when(factory.asMetaFor(any(ItemMeta.class), any(Material.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(factory.updateMaterial(any(ItemMeta.class), any(Material.class))).thenAnswer(invocation -> invocation.getArgument(1));
+        TestServerFixtures.legacyItemFactory(factory);
         bukkit.when(() -> Bukkit.createInventory(any(InventoryHolder.class), eq(54), anyString())).thenAnswer(invocation -> {
             Inventory inventory = mock(Inventory.class);
             Map<Integer, ItemStack> contents = new HashMap<>();
@@ -82,7 +88,7 @@ public class RulesTest {
         rules = new Rules(plugin);
     }
 
-    @After
+    @AfterEach
     public void cleanup() { if (bukkit != null) bukkit.close(); }
 
     private void tick() {
@@ -119,7 +125,7 @@ public class RulesTest {
         assertTrue(rules.requiresAcceptance(player));
         click(49, ClickType.LEFT);
         assertFalse(rules.requiresAcceptance(player));
-        assertTrue(new File(folder.getRoot(), "accepted-rules.yml").isFile());
+        assertTrue(new File(folder, "accepted-rules.yml").isFile());
         assertFalse(new Rules(plugin).requiresAcceptance(player));
         config.set("regeln", List.of("Neue Regel"));
         assertTrue(new Rules(plugin).requiresAcceptance(player));
@@ -143,7 +149,7 @@ public class RulesTest {
     }
 
     @Test
-    public void movementTeleportAndMountAreBlockedButLookingIsAllowed() {
+    public void movementTeleportAndMountAreBlockedButLookingIsAllowed() throws Exception {
         World world = mock(World.class);
         Location from = new Location(world, 1.5, 64, 2.5, 0, 0);
         PlayerMoveEvent move = new PlayerMoveEvent(player, from, new Location(world, 2, 64, 2.5, 90, 10));
@@ -160,9 +166,11 @@ public class RulesTest {
         PlayerPortalEvent portal = new PlayerPortalEvent(player, from, new Location(mock(World.class), 0, 64, 0));
         rules.onPortal(portal);
         assertTrue(portal.isCancelled());
-        EntityMountEvent mount = new EntityMountEvent(player, mock(org.bukkit.entity.Entity.class));
+        EntityEvent mount = (EntityEvent) ServerApi.mountEventType()
+                .getConstructor(org.bukkit.entity.Entity.class, org.bukkit.entity.Entity.class)
+                .newInstance(player, mock(org.bukkit.entity.Entity.class));
         rules.onMount(mount);
-        assertTrue(mount.isCancelled());
+        assertTrue(((Cancellable) mount).isCancelled());
     }
 
     @Test
@@ -199,7 +207,7 @@ public class RulesTest {
     public void failedPersistenceKeepsPlayerLocked() throws Exception {
         config.set("regeln", List.of("Eine Regel"));
         rules = new Rules(plugin);
-        assertTrue(new File(folder.getRoot(), "accepted-rules.yml").mkdir());
+        assertTrue(new File(folder, "accepted-rules.yml").mkdir());
         rules.onCommand(player, null, "regeln", new String[0]);
         click(0, ClickType.LEFT);
         click(49, ClickType.LEFT);
