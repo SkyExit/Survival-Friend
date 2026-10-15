@@ -4,6 +4,23 @@ gravity-duplication:
   # Restore gravity block duplication at End portals on Folia only.
   # Ignored on Paper and Spigot. Can be toggled immediately in the admin menu.
   enable: false
+pearl-stasis:
+  # Restore Ender pearl stasis chambers on Folia only. Ignored on Paper and Spigot.
+  # The menu switch takes effect immediately. Restart after changing other settings.
+  enable: false
+  # Radius of ticking chunks around each chamber: 0 = 1 chunk, 1 = 3x3, 2 = 5x5.
+  # Allowed range: 0-8. Overlapping chambers share their chunk tickets.
+  chunk-radius: 1
+  # Height above the anchor block's floor (0.0-0.99).
+  dummy-height: 0.87
+  detection:
+    bubble-columns: true
+    honey-blocks: true
+    # Additional Bukkit block names that may hold a pearl in stasis.
+    extra-blocks: []
+    # Consecutive ticks in the same medium before a pearl is considered held.
+    min-ticks-bubble-column: 2
+    min-ticks-touch-medium: 10
 utils:
   wb: 3
   compass: 1
@@ -18,7 +35,7 @@ spf:
   enable: true
   # Prevent distance-based despawning for these mobs after their first portal contact.
   # This does not keep chunks loaded. Previously protected mobs keep their protection.
-  # Use mobs: [] to protect no additional mobs. Restart after changing this list.
+  # Use 'mobs: []' to protect no additional mobs. Restart after changing this list.
   # Bukkit mob names (availability and some names depend on the Minecraft version):
   # ALLAY, ARMADILLO, AXOLOTL, BAT, BEE, BLAZE, BOGGED, BREEZE, CAMEL, CAT,
   # CAVE_SPIDER, CHICKEN, COD, COPPER_GOLEM, COW, CREAKING, CREEPER, DOLPHIN,

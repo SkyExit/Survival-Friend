@@ -12,6 +12,7 @@ public final class SF extends JavaPlugin {
     private static SF plugin;
     private Rules rules;
     private ServerTasks tasks;
+    private PearlStasis pearlStasis;
 
     @Override
     public void onLoad() { plugin = this; }
@@ -39,7 +40,12 @@ public final class SF extends JavaPlugin {
         pluginManager.registerEvents(new CancelCreeper(), this);
         pluginManager.registerEvents(new CancelCropTrampling(), this);
         pluginManager.registerEvents(new SoloPortalFarm(this), this);
-        if (ServerPlatform.isFolia()) pluginManager.registerEvents(new GravityDuplication(this), this);
+        if (ServerPlatform.isFolia()) {
+            pluginManager.registerEvents(new GravityDuplication(this), this);
+            pearlStasis = new PearlStasis(this);
+            pluginManager.registerEvents(pearlStasis, this);
+            pearlStasis.refresh();
+        }
         pluginManager.registerEvents(new HarderDragon(), this);
         pluginManager.registerEvents(new TotemPop(), this);
         pluginManager.registerEvents(rules, this);
@@ -60,10 +66,12 @@ public final class SF extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (pearlStasis != null) pearlStasis.close();
         if (tasks != null) tasks.close();
     }
 
     public static SF getPlugin() { return plugin; }
     public Rules getRules() { return rules; }
     public ServerTasks getTasks() { return tasks; }
+    public PearlStasis getPearlStasis() { return pearlStasis; }
 }

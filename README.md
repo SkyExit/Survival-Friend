@@ -44,6 +44,18 @@ classes. Use the Java version required by your Minecraft server.
   admin menu (slot 44). Disabled by default; changes take effect immediately and
   are saved as `gravity-duplication.enable`. The feature is ignored on Paper and
   Spigot, even if enabled in the config. The plugin's main switch also disables it.
+- **Pearl stasis fix (Folia only):** Restore Ender pearl stasis chambers using
+  persistent pearl placeholders. Toggle the Eye of Ender in slot 52, directly
+  left of the bottom-right corner. Disabled by default and ignored on Paper and
+  Spigot. Upward bubble columns and honey chambers are supported; ordinary water
+  and downward bubble columns do not arm pearls. Saved chambers survive player
+  disconnects, server restarts and disabling the feature. Colliding blocks or
+  interacting with a placeholder trigger its owner; offline triggers wait for
+  the owner to reconnect. Failed or cancelled teleports keep the chamber.
+  While enabled, each chamber keeps a configurable area of chunks ticking
+  (`pearl-stasis.chunk-radius`, default 1 for 3x3 chunks); overlapping chambers
+  share tickets. Disabling the feature or the plugin's main switch releases
+  these tickets. The server must remain running for its chunks to tick.
 - **Paper exploit status:** The Comparator in the bottom-right corner (slot 53)
   shows the four loaded Paper settings below, green for enabled and red for
   disabled. Available on Paper and Folia; clicking refreshes the display.
@@ -116,8 +128,8 @@ Entity tasks follow their player or dragon on Paper and Folia; Spigot uses the
 Bukkit scheduler. TPA uses asynchronous teleportation where supported. Shared
 request, consent and configuration state is synchronized across regions.
 
-See [the v0.8.0 verification record](docs/verification-0.8.0.md) for the gravity
-duplication and Paper status checks, and
+See [the pearl stasis verification record](docs/verification-pearl-stasis.md)
+for the current feature checks, and
 [the v0.7.2 record](docs/verification-0.7.2.md) for previous feature checks.
 Java test sources and test-only Maven dependencies are not included in this release.
 
@@ -126,6 +138,13 @@ FoliaFlow. Remove the standalone FoliaFlow plugin when using this feature to
 avoid both plugins duplicating the same falling block. Motion defaults are
 adapted from [FoliaFlow](https://github.com/Hynse/FoliaFlow); its MIT license is
 included in the plugin JAR at `META-INF/licenses/FoliaFlow.txt`.
+
+Pearl stasis behavior is adapted from
+[PearlStasisFix](https://github.com/0xEEF/PearlStasisFix). Its MIT license is
+included at `META-INF/licenses/PearlStasisFix.txt`; the standalone plugin is not
+required. Chamber data is stored in `plugins/SurvivalFriend/pearl-stasis.yml`.
+Existing data from the standalone plugin is not imported automatically.
+Use SurvivalFriend's implementation without the standalone PearlStasisFix plugin.
 
 The Paper setting descriptions follow the
 [Paper global configuration reference](https://docs.papermc.io/paper/reference/global-configuration/#unsupported-settings).

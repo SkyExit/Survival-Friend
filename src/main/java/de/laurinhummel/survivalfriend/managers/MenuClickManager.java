@@ -15,15 +15,18 @@ public class MenuClickManager {
     public void updateConfig() {
         FileConfiguration config = SF.getPlugin().getConfig();
         boolean refreshRules = false;
+        boolean refreshStasis = false;
         synchronized (config) {
             if (position == 49) {
                 config.set("enabled", !config.getBoolean("enabled"));
                 SF.getPlugin().saveConfig();
                 refreshRules = true;
+                refreshStasis = true;
             } else {
                 for (MenuSF.MenuItems element : MenuSF.MenuItems.values()) {
                     if (element.getPosition() != position) continue;
-                    if (element == MenuSF.MenuItems.GRAVITY_DUPLICATION && !ServerPlatform.isFolia()) return;
+                    if ((element == MenuSF.MenuItems.GRAVITY_DUPLICATION || element == MenuSF.MenuItems.PEARL_STASIS)
+                            && !ServerPlatform.isFolia()) return;
                     String path = element.getPath();
                     switch (String.valueOf(config.get(path))) {
                         case "true" -> config.set(path, false);
@@ -34,10 +37,12 @@ public class MenuClickManager {
                     }
                     SF.getPlugin().saveConfig();
                     refreshRules = element == MenuSF.MenuItems.RULES;
+                    refreshStasis = element == MenuSF.MenuItems.PEARL_STASIS;
                     break;
                 }
             }
         }
+        if (refreshStasis && SF.getPlugin().getPearlStasis() != null) SF.getPlugin().getPearlStasis().refresh();
         if (refreshRules) org.bukkit.Bukkit.getOnlinePlayers().forEach(player ->
                 SF.getPlugin().getTasks().execute(player, () -> SF.getPlugin().getRules().refresh(player)));
     }

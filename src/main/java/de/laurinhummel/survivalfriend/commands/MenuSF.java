@@ -55,7 +55,8 @@ public class MenuSF implements CommandExecutor, Listener {
         TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable"),
         RULES(45, "rules.enable"),
-        GRAVITY_DUPLICATION(44, "gravity-duplication.enable");
+        GRAVITY_DUPLICATION(44, "gravity-duplication.enable"),
+        PEARL_STASIS(52, "pearl-stasis.enable");
 
         private final int position;
         private final String path;
@@ -136,6 +137,12 @@ public class MenuSF implements CommandExecutor, Listener {
                     ChatColor.AQUA + "Enable gravity block duplication at End portals",
                     ChatColor.GRAY + "Folia only; takes effect immediately",
                     ChatColor.GRAY + "Status: " + getStatus(GRAVITY_DUPLICATION.path)));
+            menu.setItem(PEARL_STASIS.position, createItem(Material.ENDER_EYE, "PEARL STASIS FIX", false,
+                    ChatColor.AQUA + "Restore Ender pearl stasis chambers",
+                    ChatColor.GRAY + "Supports bubble columns and honey chambers",
+                    ChatColor.GRAY + "Keeps chamber chunks loaded while enabled",
+                    ChatColor.GRAY + "Folia only; saved chambers survive restarts",
+                    ChatColor.GRAY + "Status: " + getStatus(PEARL_STASIS.path)));
         }
         if (ServerPlatform.isPaper()) {
             menu.setItem(53, createItem(Material.COMPARATOR, "PAPER EXPLOIT SETTINGS", false, paperSettingsLore()));

@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend.scheduling;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
@@ -17,6 +18,9 @@ public final class ServerTasks implements AutoCloseable {
     private final Method teleportAsync;
     private final Method ownsEntity;
     private final Method ownsLocation;
+    private final Method getRegionScheduler;
+    private final Method regionExecute;
+    private final Method getChunkAtAsync;
     private volatile boolean closed;
 
     public ServerTasks(Plugin plugin) {
@@ -28,6 +32,9 @@ public final class ServerTasks implements AutoCloseable {
             teleportAsync = null;
             ownsEntity = null;
             ownsLocation = null;
+            getRegionScheduler = null;
+            regionExecute = null;
+            getChunkAtAsync = null;
             // Never silently use Bukkit's scheduler on a broken/unsupported Folia API.
             try {
                 Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
@@ -39,6 +46,9 @@ public final class ServerTasks implements AutoCloseable {
                 teleportAsync = Entity.class.getMethod("teleportAsync", Location.class);
                 ownsEntity = Bukkit.class.getMethod("isOwnedByCurrentRegion", Entity.class);
                 ownsLocation = Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class);
+                getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
+                regionExecute = getRegionScheduler.getReturnType().getMethod("execute", Plugin.class, Location.class, Runnable.class);
+                getChunkAtAsync = World.class.getMethod("getChunkAtAsync", int.class, int.class, boolean.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Incomplete Paper/Folia scheduling API", e);
             }
@@ -70,10 +80,41 @@ public final class ServerTasks implements AutoCloseable {
     }
 
     public void later(Entity entity, Runnable task, long delayTicks) {
+        later(entity, task, () -> { }, delayTicks);
+    }
+
+    public void later(Entity entity, Runnable task, Runnable retired, long delayTicks) {
         if (delayTicks < 1L) throw new IllegalArgumentException("Task delay must be at least one tick");
-        if (closed || !plugin.isEnabled()) return;
+        if (closed || !plugin.isEnabled()) { retired.run(); return; }
         if (!hasEntityScheduler()) Bukkit.getScheduler().runTaskLater(plugin, guarded(task), delayTicks);
-        else schedule(entity, task, () -> { }, delayTicks);
+        else schedule(entity, task, retired, delayTicks);
+    }
+
+    /** Load terrain asynchronously, then run block/entity work on the destination region. */
+    public CompletableFuture<Void> at(Location location, Runnable task) {
+        if (closed || !plugin.isEnabled()) return CompletableFuture.completedFuture(null);
+        Location destination = location.clone();
+        if (getRegionScheduler == null) {
+            Bukkit.getScheduler().runTask(plugin, guarded(task));
+            return CompletableFuture.completedFuture(null);
+        }
+        try {
+            CompletableFuture<?> loaded = (CompletableFuture<?>) invoke(getChunkAtAsync, destination.getWorld(),
+                    destination.getBlockX() >> 4, destination.getBlockZ() >> 4, true);
+            return loaded.thenCompose(ignored -> {
+                if (closed || !plugin.isEnabled()) return CompletableFuture.completedFuture(null);
+                CompletableFuture<Void> completed = new CompletableFuture<>();
+                invoke(regionExecute, invoke(getRegionScheduler, null), plugin, destination, (Runnable) () -> {
+                    try {
+                        if (!closed && plugin.isEnabled()) task.run();
+                        completed.complete(null);
+                    } catch (Throwable error) { completed.completeExceptionally(error); }
+                });
+                return completed;
+            });
+        } catch (RuntimeException e) {
+            return CompletableFuture.failedFuture(e);
+        }
     }
 
     private void schedule(Entity entity, Runnable task, Runnable retired) {
