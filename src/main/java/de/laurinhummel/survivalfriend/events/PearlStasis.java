@@ -299,11 +299,19 @@ public final class PearlStasis implements Listener, AutoCloseable {
         private void schedule() { plugin.getTasks().later(item, this, () -> active.remove(chamber.id, this), 1L); }
 
         @Override public void run() {
-            if (!enabled() || session != generation || active.get(chamber.id) != this || !item.isValid()) return;
+            if (!enabled() || session != generation || active.get(chamber.id) != this) return;
+            // Folia can run an entity task while its asynchronous teleport is in transit.
+            // isValid() is temporarily false then; it does not mean the chamber was consumed.
+            if (!item.isValid()) { schedule(); return; }
             item.setVelocity(new Vector());
             if (!pinning && (item.getWorld() != anchor.getWorld() || item.getLocation().distanceSquared(anchor) > 0.0001)) {
                 pinning = true;
-                plugin.getTasks().teleport(item, anchor).whenComplete((success, error) -> pinning = false);
+                plugin.getTasks().teleport(item, anchor).whenComplete((success, error) -> {
+                    pinning = false;
+                    schedule();
+                });
+                // Resume only after arrival, so the next task cannot abandon a pearl in transit.
+                return;
             }
             if (++age >= 10 && age % 2 == 0 && plugin.getTasks().owns(anchor)) {
                 Set<Integer> collisions = collisions(anchor);

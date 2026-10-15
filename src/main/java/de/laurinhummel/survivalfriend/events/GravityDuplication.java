@@ -16,6 +16,7 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.util.Vector;
+import org.bukkit.util.BoundingBox;
 
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,17 +54,19 @@ public final class GravityDuplication implements Listener {
     private Block portalInPath(FallingBlock falling) {
         Vector velocity = falling.getVelocity();
         Location location = falling.getLocation();
-        Block current = ownedBlock(location);
-        if (current != null && current.getType() == Material.END_PORTAL) return current;
-        double x = Math.abs(velocity.getX());
-        double y = Math.abs(velocity.getY());
-        double z = Math.abs(velocity.getZ());
-        if (x > y && x > z) location.add(Math.signum(velocity.getX()), 0, 0);
-        else if (y > z) location.add(0, Math.signum(velocity.getY()), 0);
-        else location.add(0, 0, Math.signum(velocity.getZ()));
-
-        Block portal = ownedBlock(location);
-        return portal != null && portal.getType() == Material.END_PORTAL ? portal : null;
+        // A falling block is almost one block wide. Its edge can reach a portal
+        // even when its centre and the single dominant-axis neighbour both miss it.
+        BoundingBox path = falling.getBoundingBox().clone().expandDirectional(
+                Math.signum(velocity.getX()), Math.signum(velocity.getY()), Math.signum(velocity.getZ()));
+        for (int x = (int) Math.floor(path.getMinX()); x <= (int) Math.floor(path.getMaxX()); x++) {
+            for (int y = (int) Math.floor(path.getMinY()); y <= (int) Math.floor(path.getMaxY()); y++) {
+                for (int z = (int) Math.floor(path.getMinZ()); z <= (int) Math.floor(path.getMaxZ()); z++) {
+                    Block portal = ownedBlock(new Location(location.getWorld(), x, y, z));
+                    if (portal != null && portal.getType() == Material.END_PORTAL) return portal;
+                }
+            }
+        }
+        return null;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -115,7 +118,13 @@ public final class GravityDuplication implements Listener {
     }
 
     private void awaitArrival(FallingBlock duplicate, Transfer transfer, int remainingTicks) {
-        if (!duplicate.isValid()) return;
+        // During a Folia dimension transfer the entity may temporarily be invalid.
+        // Keep following its scheduler until it arrives or retires. The portal
+        // timeout counts active ticks, not time spent detached during a transfer.
+        if (!duplicate.isValid()) {
+            plugin.getTasks().later(duplicate, () -> awaitArrival(duplicate, transfer, remainingTicks));
+            return;
+        }
         if (!PermissionManager.checkEnabled(MenuSF.MenuItems.GRAVITY_DUPLICATION)) {
             duplicate.remove();
             return;
@@ -138,18 +147,23 @@ public final class GravityDuplication implements Listener {
         plugin.getTasks().teleport(duplicate, duplicate.getLocation().add(0, 0.5, 0))
                 .whenComplete((success, error) -> {
                     // A rejected height adjustment must not leave an arrived block frozen.
-                    plugin.getTasks().execute(duplicate, () -> {
-                        if (!duplicate.isValid()) return;
-                        if (!PermissionManager.checkEnabled(MenuSF.MenuItems.GRAVITY_DUPLICATION)) {
-                            duplicate.remove();
-                            return;
-                        }
-                        duplicate.setGravity(transfer.gravity);
-                        duplicate.setDropItem(transfer.dropItem);
-                        duplicate.setPersistent(transfer.persistent);
-                        duplicate.setVelocity(transfer.velocity.clone());
-                        transferWarning.set(false);
-                    });
+                    plugin.getTasks().execute(duplicate, () -> restoreMotion(duplicate, transfer));
                 });
+    }
+
+    private void restoreMotion(FallingBlock duplicate, Transfer transfer) {
+        if (!duplicate.isValid()) {
+            plugin.getTasks().later(duplicate, () -> restoreMotion(duplicate, transfer));
+            return;
+        }
+        if (!PermissionManager.checkEnabled(MenuSF.MenuItems.GRAVITY_DUPLICATION)) {
+            duplicate.remove();
+            return;
+        }
+        duplicate.setGravity(transfer.gravity);
+        duplicate.setDropItem(transfer.dropItem);
+        duplicate.setPersistent(transfer.persistent);
+        duplicate.setVelocity(transfer.velocity.clone());
+        transferWarning.set(false);
     }
 }

@@ -1,4 +1,4 @@
-# SurvivalFriend v0.8.2-BETA
+# SurvivalFriend v0.8.4-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
 this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
@@ -46,7 +46,9 @@ classes. Use the Java version required by your Minecraft server.
   Spigot, even if enabled in the config. The plugin's main switch also disables it.
   Sideways entries that break into items are supported. Temporary copies stay
   inside the portal until Folia completes the actual dimension change; only then
-  are their momentum and gravity restored. Blocked transfers are cleaned up.
+  are their momentum and gravity restored. Temporary invalidity during an
+  asynchronous transfer no longer stops this recovery. Portal detection includes
+  the falling block's edges and diagonal motion. Blocked transfers are cleaned up.
 - **Pearl stasis fix (Folia only):** Restore Ender pearl stasis chambers using
   persistent pearl placeholders. Toggle the Eye of Ender in slot 52, directly
   left of the bottom-right corner. Disabled by default and ignored on Paper and
@@ -59,6 +61,8 @@ classes. Use the Java version required by your Minecraft server.
   (`pearl-stasis.chunk-radius`, default 1 for 3x3 chunks); overlapping chambers
   share tickets. Disabling the feature or the plugin's main switch releases
   these tickets. The server must remain running for its chunks to tick.
+  Restored placeholders stay at their saved position after a restart, including
+  in bubble columns that push dropped items upward.
 - **Paper exploit status:** The Comparator in the bottom-right corner (slot 53)
   shows the four loaded Paper settings below, green for enabled and red for
   disabled. Available on Paper and Folia; clicking refreshes the display.
@@ -78,7 +82,7 @@ shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.8.3-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.8.4-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
@@ -140,6 +144,12 @@ See [the v0.8.3 gravity verification record](docs/verification-gravity-0.8.3.md)
 for the reproduced sideways-entry failure and real End arrival and collection
 checks. Folia's portal behavior differs from Paper; see
 [the upstream explanation](https://github.com/PaperMC/Folia/issues/297).
+
+See [the v0.8.4 regression record and solo test instructions](docs/verification-0.8.4.md)
+for the reproduced restart and frozen-sand failures. A pearl chamber beside the
+duper keeps its Overworld chunks ticking while the only player waits in the End.
+The chamber's configured chunk radius must cover the complete duper and its
+redstone clock; both Pearl Stasis and Gravity Duplication must be enabled.
 
 Gravity duplication is integrated into SurvivalFriend and does not require
 FoliaFlow. Remove the standalone FoliaFlow plugin when using this feature to
