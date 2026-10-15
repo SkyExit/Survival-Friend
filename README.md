@@ -1,4 +1,4 @@
-# SurvivalFriend v0.8.0-BETA
+# SurvivalFriend v0.8.2-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
 this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
@@ -44,6 +44,9 @@ classes. Use the Java version required by your Minecraft server.
   admin menu (slot 44). Disabled by default; changes take effect immediately and
   are saved as `gravity-duplication.enable`. The feature is ignored on Paper and
   Spigot, even if enabled in the config. The plugin's main switch also disables it.
+  Sideways entries that break into items are supported. Temporary copies stay
+  inside the portal until Folia completes the actual dimension change; only then
+  are their momentum and gravity restored. Blocked transfers are cleaned up.
 - **Pearl stasis fix (Folia only):** Restore Ender pearl stasis chambers using
   persistent pearl placeholders. Toggle the Eye of Ender in slot 52, directly
   left of the bottom-right corner. Disabled by default and ignored on Paper and
@@ -75,7 +78,7 @@ shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.8.0-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.8.3-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
@@ -132,6 +135,11 @@ See [the pearl stasis verification record](docs/verification-pearl-stasis.md)
 for the current feature checks, and
 [the v0.7.2 record](docs/verification-0.7.2.md) for previous feature checks.
 Java test sources and test-only Maven dependencies are not included in this release.
+
+See [the v0.8.3 gravity verification record](docs/verification-gravity-0.8.3.md)
+for the reproduced sideways-entry failure and real End arrival and collection
+checks. Folia's portal behavior differs from Paper; see
+[the upstream explanation](https://github.com/PaperMC/Folia/issues/297).
 
 Gravity duplication is integrated into SurvivalFriend and does not require
 FoliaFlow. Remove the standalone FoliaFlow plugin when using this feature to
