@@ -51,7 +51,7 @@ public class TPA implements CommandExecutor, TabCompleter, Listener {
             return true;
         }
         if (plugin.getRules().requiresAcceptance(player) || plugin.getRules().requiresAcceptance(target)) {
-            SkyLogger.sendPlayer(player, "Both players must accept /regeln before teleporting.", SkyLogger.LogType.ERROR);
+            SkyLogger.sendPlayer(player, "Both players must accept /rules before teleporting.", SkyLogger.LogType.ERROR);
             return true;
         }
         if (args.length == 2) {

@@ -48,7 +48,8 @@ public class MenuSF implements CommandExecutor, Listener {
         SOLO_PORTAL_FARM(19, "spf.enable"),
         HARDER_DRAGON(40, "hd.enable"),
         TOTEM_MSG(22, "totem.enable"),
-        TPA(25, "tpa.enable");
+        TPA(25, "tpa.enable"),
+        RULES(23, "rules.enable");
 
         private final int position;
         private final String path;
@@ -119,6 +120,10 @@ public class MenuSF implements CommandExecutor, Listener {
         menu.setItem(TOTEM_MSG.position, createItem(Material.TOTEM_OF_UNDYING, "TOTEM POP MESSAGE", false,
                 ChatColor.AQUA + "Displays a message on totem pop",
                 ChatColor.GRAY + "Status: " + getStatus(TOTEM_MSG.path)));
+
+        menu.setItem(RULES.position, createItem(Material.BOOK, "SERVER RULES", false,
+                ChatColor.AQUA + "Enable /rules and require players to accept them",
+                ChatColor.GRAY + "Status: " + getStatus(RULES.path)));
 
         boolean enabled = ConfigAccess.enabled(SF.getPlugin(), "enabled");
         menu.setItem(49, createItem(enabled ? Material.GREEN_TERRACOTTA : Material.RED_TERRACOTTA,

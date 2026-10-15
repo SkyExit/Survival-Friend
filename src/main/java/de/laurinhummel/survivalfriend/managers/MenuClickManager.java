@@ -13,12 +13,12 @@ public class MenuClickManager {
 
     public void updateConfig() {
         FileConfiguration config = SF.getPlugin().getConfig();
-        boolean promptPlayers = false;
+        boolean refreshRules = false;
         synchronized (config) {
             if (position == 49) {
                 config.set("enabled", !config.getBoolean("enabled"));
                 SF.getPlugin().saveConfig();
-                promptPlayers = config.getBoolean("enabled");
+                refreshRules = true;
             } else {
                 for (MenuSF.MenuItems element : MenuSF.MenuItems.values()) {
                     if (element.getPosition() != position) continue;
@@ -31,11 +31,12 @@ public class MenuClickManager {
                         case "3" -> config.set(path, 1);
                     }
                     SF.getPlugin().saveConfig();
-                    return;
+                    refreshRules = element == MenuSF.MenuItems.RULES;
+                    break;
                 }
             }
         }
-        if (promptPlayers) org.bukkit.Bukkit.getOnlinePlayers().forEach(player ->
-                SF.getPlugin().getTasks().execute(player, () -> SF.getPlugin().getRules().prompt(player)));
+        if (refreshRules) org.bukkit.Bukkit.getOnlinePlayers().forEach(player ->
+                SF.getPlugin().getTasks().execute(player, () -> SF.getPlugin().getRules().refresh(player)));
     }
 }

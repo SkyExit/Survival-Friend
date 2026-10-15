@@ -1,4 +1,4 @@
-# 1 = alle Spieler, 2 = nur Admins, 3 = deaktiviert (bei utils).
+# Utility access: 1 = all players, 2 = admins only, 3 = disabled.
 enabled: true
 utils:
   wb: 3
@@ -12,20 +12,52 @@ trampling:
   mob: true
 spf:
   enable: true
+  # Prevent distance-based despawning for these mobs after their first portal contact.
+  # This does not keep chunks loaded. Previously protected mobs keep their protection.
+  # Use mobs: [] to protect no additional mobs. Restart after changing this list.
+  # Bukkit mob names (availability and some names depend on the Minecraft version):
+  # ALLAY, ARMADILLO, AXOLOTL, BAT, BEE, BLAZE, BOGGED, BREEZE, CAMEL, CAT,
+  # CAVE_SPIDER, CHICKEN, COD, COPPER_GOLEM, COW, CREAKING, CREEPER, DOLPHIN,
+  # DONKEY, DROWNED, ELDER_GUARDIAN, ENDER_DRAGON, ENDERMAN, ENDERMITE, EVOKER,
+  # FOX, FROG, GHAST, GIANT, GLOW_SQUID, GOAT, GUARDIAN, HAPPY_GHAST, HOGLIN,
+  # HORSE, HUSK, ILLUSIONER, IRON_GOLEM, LLAMA, MAGMA_CUBE, MOOSHROOM, MULE,
+  # MUSHROOM_COW, NAUTILUS, OCELOT, PANDA, PARROT, PHANTOM, PIG, PIGLIN,
+  # PIGLIN_BRUTE, PILLAGER, POLAR_BEAR, PUFFERFISH, RABBIT, RAVAGER, SALMON,
+  # SHEEP, SHULKER, SILVERFISH, SKELETON, SKELETON_HORSE, SLIME, SNIFFER,
+  # SNOW_GOLEM, SNOWMAN, SPIDER, SQUID, STRAY, STRIDER, TADPOLE, TRADER_LLAMA,
+  # TROPICAL_FISH, TURTLE, VEX, VILLAGER, VINDICATOR, WANDERING_TRADER,
+  # WARDEN, WITCH, WITHER, WITHER_SKELETON, WOLF, ZOGLIN, ZOMBIE,
+  # ZOMBIE_HORSE, ZOMBIE_VILLAGER, ZOMBIFIED_PIGLIN.
+  # ZOMBIFIED_PIGLIN is the zombified variant; PIGLIN is a separate mob type.
+  mobs:
+    - WITHER_SKELETON
+    - CREEPER
+    - IRON_GOLEM
+    - ZOMBIFIED_PIGLIN
+    - GUARDIAN
 tpa:
   enable: true
+  # Time between sent requests, in seconds. 3600 = 60 minutes.
+  # Set to 0 to disable the cooldown. Restart after changing these values.
   cooldown-seconds: 3600
+  # Request lifetime in seconds (minimum: 1).
   request-timeout-seconds: 120
 hd:
   enable: false
+  # Vanilla Ender Dragon base health: 200 HP (= 100 hearts).
+  # Maximum health on the next spawn/respawn while hd.enable is true.
+  # Must be a finite number greater than 0. 1000 HP = 500 hearts.
   health: 1000
 totem:
   enable: true
-
-# Jede Regel beginnt mit einem eigenen "-". Farbcodes mit & sind erlaubt.
-# Nach Aenderungen den Server neu starten. Geaenderte Regeln erfordern neue Zustimmung.
-# Eine leere Liste (regeln: []) deaktiviert die Bewegungssperre.
-regeln:
-  - 'Behandle andere Spieler respektvoll.'
-  - 'Griefing und Diebstahl sind verboten.'
-  - 'Cheats und das Ausnutzen von Bugs sind verboten.'
+rules:
+  # /rules and mandatory rule acceptance are disabled by default.
+  # Toggle this feature in the /menufs admin menu or change it here.
+  enable: false
+  # One rule per list entry. Color codes using & are supported.
+  # Restart after editing the rules. Changed rules require renewed acceptance.
+  # An empty list (entries: []) also disables the movement restriction.
+  entries:
+    - 'Treat other players with respect.'
+    - 'Griefing and stealing are not allowed.'
+    - 'Cheating and exploiting bugs are not allowed.'

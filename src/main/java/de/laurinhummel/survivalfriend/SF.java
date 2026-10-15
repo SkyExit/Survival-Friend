@@ -19,6 +19,13 @@ public final class SF extends JavaPlugin {
     public void onEnable() {
         tasks = new ServerTasks(this);
         saveDefaultConfig();
+        // Preserve rules from configurations written before the command was renamed.
+        if (getConfig().isList("regeln")) {
+            if (!getConfig().contains("rules.entries", true)) {
+                getConfig().set("rules.entries", getConfig().getStringList("regeln"));
+            }
+            getConfig().set("regeln", null);
+        }
         getConfig().options().copyDefaults(true);
         saveConfig();
 
@@ -27,15 +34,15 @@ public final class SF extends JavaPlugin {
         TPA tpa = new TPA(this);
         Compass compass = new Compass();
         PluginManager pluginManager = Bukkit.getPluginManager();
-            pluginManager.registerEvents(menu, this);
-            pluginManager.registerEvents(new CancelCreeper(), this);
-            pluginManager.registerEvents(new CancelCropTrampling(), this);
-            pluginManager.registerEvents(new SoloPortalFarm(), this);
-            pluginManager.registerEvents(new HarderDragon(), this);
-            pluginManager.registerEvents(new TotemPop(), this);
-            pluginManager.registerEvents(rules, this);
-            rules.registerMountListener(pluginManager);
-            pluginManager.registerEvents(tpa, this);
+        pluginManager.registerEvents(menu, this);
+        pluginManager.registerEvents(new CancelCreeper(), this);
+        pluginManager.registerEvents(new CancelCropTrampling(), this);
+        pluginManager.registerEvents(new SoloPortalFarm(this), this);
+        pluginManager.registerEvents(new HarderDragon(), this);
+        pluginManager.registerEvents(new TotemPop(), this);
+        pluginManager.registerEvents(rules, this);
+        rules.registerMountListener(pluginManager);
+        pluginManager.registerEvents(tpa, this);
 
         getCommand("menusf").setExecutor(menu);
         getCommand("compass").setExecutor(compass);
@@ -44,8 +51,8 @@ public final class SF extends JavaPlugin {
         getCommand("workbench").setExecutor(new Workbench());
         getCommand("tpa").setExecutor(tpa);
         getCommand("tpa").setTabCompleter(tpa);
-        getCommand("regeln").setExecutor(rules);
-        getCommand("regeln").setTabCompleter((sender, command, alias, args) -> java.util.Collections.emptyList());
+        getCommand("rules").setExecutor(rules);
+        getCommand("rules").setTabCompleter((sender, command, alias, args) -> java.util.Collections.emptyList());
         Bukkit.getOnlinePlayers().forEach(player -> tasks.execute(player, () -> rules.prompt(player)));
     }
 

@@ -26,10 +26,10 @@ public class HarderDragon implements Listener {
                 || !(event.getEntity() instanceof EnderDragon dragon)) return;
         AttributeInstance health = dragon.getAttribute(ServerApi.MAX_HEALTH);
         if (health == null) return;
-        double configuredHealth = ConfigAccess.read(SF.getPlugin(), config -> config.getDouble("hd.health", 1000));
+        double configuredHealth = ConfigAccess.read(SF.getPlugin(), config -> config.getDouble("hd.health", 200));
         if (!Double.isFinite(configuredHealth) || configuredHealth <= 0) {
-            SF.getPlugin().getLogger().warning("Invalid hd.health; using 1000 HP.");
-            configuredHealth = 1000;
+            SF.getPlugin().getLogger().warning("Invalid hd.health; using 200 HP.");
+            configuredHealth = 200;
         }
         health.setBaseValue(configuredHealth);
         dragon.setHealth(health.getValue());

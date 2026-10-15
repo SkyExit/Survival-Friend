@@ -37,7 +37,7 @@ public final class Rules implements CommandExecutor, Listener {
 
     public Rules(SF plugin) {
         this.plugin = plugin;
-        agreement = new RulesAgreement(plugin.getConfig().getStringList("regeln"));
+        agreement = new RulesAgreement(plugin.getConfig().getStringList("rules.entries"));
         file = new File(plugin.getDataFolder(), "accepted-rules.yml");
         if (file.exists()) {
             try {
@@ -59,14 +59,30 @@ public final class Rules implements CommandExecutor, Listener {
     }
 
     public boolean requiresAcceptance(Player player) {
-        return ConfigAccess.enabled(plugin, "enabled") && !agreement.getRules().isEmpty()
+        return isEnabled() && !agreement.getRules().isEmpty()
                 && !agreement.hasAccepted(player.getUniqueId());
+    }
+
+    private boolean isEnabled() {
+        return ConfigAccess.read(plugin, config -> config.getBoolean("enabled") && config.getBoolean("rules.enable"));
+    }
+
+    public void refresh(Player player) {
+        if (!player.isOnline()) return;
+        if (isEnabled()) {
+            prompt(player);
+        } else {
+            agreement.forgetPending(player.getUniqueId());
+            if (ServerApi.topInventory(player.getOpenInventory()).getHolder() instanceof RulesMenu) {
+                player.closeInventory();
+            }
+        }
     }
 
     public void prompt(Player player) {
         if (!plugin.isEnabled() || !requiresAcceptance(player)) return;
         player.leaveVehicle();
-        SkyLogger.sendPlayer(player, "Bitte akzeptiere zuerst alle Serverregeln mit /regeln.", SkyLogger.LogType.WARNING);
+        SkyLogger.sendPlayer(player, "Please accept all server rules with /rules first.", SkyLogger.LogType.WARNING);
         plugin.getTasks().later(player, () -> {
             if (player.isOnline() && !player.isDead() && requiresAcceptance(player)) open(player, 0);
         });
@@ -75,9 +91,11 @@ public final class Rules implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("Dieser Befehl ist nur fuer Spieler verfuegbar.");
+            sender.sendMessage("This command is for players only.");
+        } else if (!isEnabled()) {
+            SkyLogger.sendPlayer(player, "The /rules feature is disabled.", SkyLogger.LogType.INFO);
         } else if (agreement.getRules().isEmpty()) {
-            SkyLogger.sendPlayer(player, "Es sind keine Serverregeln hinterlegt.", SkyLogger.LogType.INFO);
+            SkyLogger.sendPlayer(player, "No server rules have been configured.", SkyLogger.LogType.INFO);
         } else {
             open(player, 0);
         }
@@ -85,28 +103,29 @@ public final class Rules implements CommandExecutor, Listener {
     }
 
     private void open(Player player, int page) {
+        if (!isEnabled()) return;
         int pages = (agreement.getRules().size() + PAGE_SIZE - 1) / PAGE_SIZE;
         page = Math.max(0, Math.min(page, pages - 1));
         RulesMenu menu = new RulesMenu(player.getUniqueId(), page);
-        menu.inventory = Bukkit.createInventory(menu, 54, "Serverregeln " + (page + 1) + "/" + pages);
+        menu.inventory = Bukkit.createInventory(menu, 54, "Server rules " + (page + 1) + "/" + pages);
         for (int slot = 0; slot < PAGE_SIZE; slot++) {
             int index = page * PAGE_SIZE + slot;
             if (index >= agreement.getRules().size()) break;
             boolean confirmed = agreement.isConfirmed(player.getUniqueId(), index);
             List<String> lore = wrap(agreement.getRules().get(index));
             lore.add("");
-            lore.add(confirmed ? ChatColor.GREEN + "Gelesen und bestaetigt" : ChatColor.YELLOW + "Linksklick: Regel bestaetigen");
+            lore.add(confirmed ? ChatColor.GREEN + "Read and confirmed" : ChatColor.YELLOW + "Left-click to confirm this rule");
             menu.inventory.setItem(slot, item(confirmed ? Material.LIME_DYE : Material.PAPER,
-                    ChatColor.GOLD + "Regel " + (index + 1), lore));
+                    ChatColor.GOLD + "Rule " + (index + 1), lore));
         }
-        if (page > 0) menu.inventory.setItem(45, item(Material.ARROW, "Vorherige Seite", Collections.emptyList()));
-        if (page + 1 < pages) menu.inventory.setItem(53, item(Material.ARROW, "Naechste Seite", Collections.emptyList()));
+        if (page > 0) menu.inventory.setItem(45, item(Material.ARROW, "Previous page", Collections.emptyList()));
+        if (page + 1 < pages) menu.inventory.setItem(53, item(Material.ARROW, "Next page", Collections.emptyList()));
         boolean accepted = agreement.hasAccepted(player.getUniqueId());
         boolean ready = agreement.allConfirmed(player.getUniqueId());
         menu.inventory.setItem(49, item(ready ? Material.LIME_CONCRETE : Material.RED_CONCRETE,
-                accepted ? "Bereits zugestimmt" : "Allen Regeln zustimmen",
-                List.of(ready ? ChatColor.GREEN + "Linksklick: Zustimmung abschliessen"
-                        : ChatColor.YELLOW + "Bestaetige zuerst jede Regel auf allen Seiten.")));
+                accepted ? "Already accepted" : "Accept all rules",
+                List.of(ready ? ChatColor.GREEN + "Left-click to finish accepting the rules"
+                        : ChatColor.YELLOW + "Confirm every rule on every page first.")));
         player.openInventory(menu.inventory);
     }
 
@@ -147,13 +166,17 @@ public final class Rules implements CommandExecutor, Listener {
         if (!(ServerApi.topInventory(event.getView()).getHolder() instanceof RulesMenu menu)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player) || !menu.owner.equals(player.getUniqueId())) return;
+        if (!isEnabled()) {
+            plugin.getTasks().later(player, () -> refresh(player));
+            return;
+        }
         if (event.getClick() != ClickType.LEFT || event.getRawSlot() < 0 || event.getRawSlot() >= 54) return;
         int slot = event.getRawSlot();
         if (slot < PAGE_SIZE) {
             agreement.confirm(player.getUniqueId(), menu.page * PAGE_SIZE + slot);
         } else if (slot == 49) {
             if (!agreement.allConfirmed(player.getUniqueId())) {
-                SkyLogger.sendPlayer(player, "Bitte bestaetige zuerst jede Regel auf allen Seiten.", SkyLogger.LogType.WARNING);
+                SkyLogger.sendPlayer(player, "Please confirm every rule on every page first.", SkyLogger.LogType.WARNING);
                 return;
             }
             if (!agreement.hasAccepted(player.getUniqueId()) && !saveAcceptance(player)) return;
@@ -186,7 +209,7 @@ public final class Rules implements CommandExecutor, Listener {
         } catch (IOException e) {
             data.set(path, previous);
             plugin.getLogger().log(Level.SEVERE, "Could not save rules acceptance", e);
-            SkyLogger.sendPlayer(player, "Die Zustimmung konnte nicht gespeichert werden. Bitte versuche es erneut.", SkyLogger.LogType.ERROR);
+            SkyLogger.sendPlayer(player, "Your acceptance could not be saved. Please try again.", SkyLogger.LogType.ERROR);
             return false;
         } finally {
             if (temporary != null) {
@@ -199,7 +222,7 @@ public final class Rules implements CommandExecutor, Listener {
         }
         agreement.restore(player.getUniqueId(), agreement.getRevision());
         agreement.forgetPending(player.getUniqueId());
-        SkyLogger.sendPlayer(player, "Du hast allen Regeln zugestimmt und kannst dich jetzt bewegen.", SkyLogger.LogType.INFO);
+        SkyLogger.sendPlayer(player, "You have accepted all rules and can now move freely.", SkyLogger.LogType.INFO);
         return true;
     }
 

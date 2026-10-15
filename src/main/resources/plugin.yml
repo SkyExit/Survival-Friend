@@ -5,12 +5,14 @@ api-version: '1.19'
 folia-supported: true
 
 commands:
-  regeln:
-    description: Zeigt die Serverregeln an und erlaubt die Zustimmung
-    usage: /regeln
+  rules:
+    description: Displays the server rules and lets players accept them
+    usage: /rules
   menusf:
     description: Opens the menu to (de)activate features of this plugin
     usage: /menusf
+    aliases:
+      - menufs
   compass:
     description: Receive a compass pointing to a location
     usage: /compass <player>|<x> <z>

@@ -42,15 +42,6 @@ public final class ServerTasks implements AutoCloseable {
         }
     }
 
-    // Allows contract tests to exercise the optional API while compiling against Spigot.
-    ServerTasks(Plugin plugin, Method getScheduler, Method execute, Method teleportAsync, Method ownsEntity) {
-        this.plugin = plugin;
-        this.getScheduler = getScheduler;
-        this.execute = execute;
-        this.teleportAsync = teleportAsync;
-        this.ownsEntity = ownsEntity;
-    }
-
     public boolean hasEntityScheduler() { return getScheduler != null; }
 
     public boolean owns(Entity entity) {
