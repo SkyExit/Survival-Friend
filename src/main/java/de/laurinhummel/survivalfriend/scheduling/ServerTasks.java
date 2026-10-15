@@ -16,6 +16,7 @@ public final class ServerTasks implements AutoCloseable {
     private final Method execute;
     private final Method teleportAsync;
     private final Method ownsEntity;
+    private final Method ownsLocation;
     private volatile boolean closed;
 
     public ServerTasks(Plugin plugin) {
@@ -26,6 +27,7 @@ public final class ServerTasks implements AutoCloseable {
             execute = null;
             teleportAsync = null;
             ownsEntity = null;
+            ownsLocation = null;
             // Never silently use Bukkit's scheduler on a broken/unsupported Folia API.
             try {
                 Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
@@ -36,6 +38,7 @@ public final class ServerTasks implements AutoCloseable {
                 execute = scheduler.getReturnType().getMethod("execute", Plugin.class, Runnable.class, Runnable.class, long.class);
                 teleportAsync = Entity.class.getMethod("teleportAsync", Location.class);
                 ownsEntity = Bukkit.class.getMethod("isOwnedByCurrentRegion", Entity.class);
+                ownsLocation = Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Incomplete Paper/Folia scheduling API", e);
             }
@@ -46,6 +49,10 @@ public final class ServerTasks implements AutoCloseable {
 
     public boolean owns(Entity entity) {
         return ownsEntity == null || Boolean.TRUE.equals(invoke(ownsEntity, null, entity));
+    }
+
+    public boolean owns(Location location) {
+        return ownsLocation == null || Boolean.TRUE.equals(invoke(ownsLocation, null, location));
     }
 
     /** Use only for immediate work in a command/event's owning region, or to hand off to another entity. */
@@ -59,18 +66,27 @@ public final class ServerTasks implements AutoCloseable {
 
     /** Always defer inventory changes and post-damage work until the entity's next tick. */
     public void later(Entity entity, Runnable task) {
+        later(entity, task, 1L);
+    }
+
+    public void later(Entity entity, Runnable task, long delayTicks) {
+        if (delayTicks < 1L) throw new IllegalArgumentException("Task delay must be at least one tick");
         if (closed || !plugin.isEnabled()) return;
-        if (!hasEntityScheduler()) Bukkit.getScheduler().runTask(plugin, guarded(task));
-        else schedule(entity, task, () -> { });
+        if (!hasEntityScheduler()) Bukkit.getScheduler().runTaskLater(plugin, guarded(task), delayTicks);
+        else schedule(entity, task, () -> { }, delayTicks);
     }
 
     private void schedule(Entity entity, Runnable task, Runnable retired) {
+        schedule(entity, task, retired, 1L);
+    }
+
+    private void schedule(Entity entity, Runnable task, Runnable retired, long delayTicks) {
         try {
             boolean accepted = Boolean.TRUE.equals(invoke(execute, invoke(getScheduler, entity), plugin,
                     (Runnable) () -> {
                         if (closed || !plugin.isEnabled()) retired.run();
                         else task.run();
-                    }, retired, 1L));
+                    }, retired, delayTicks));
             if (!accepted) retired.run();
         } catch (RuntimeException e) {
             retired.run();

@@ -1,4 +1,4 @@
-# SurvivalFriend v0.7.2-BETA
+# SurvivalFriend v0.8.0-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
 this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
@@ -39,10 +39,31 @@ classes. Use the Java version required by your Minecraft server.
   Enable it with `rules.enable` or the **Server Rules** item in the admin menu.
 - **Admin menu:** `/menusf`, also available as `/menufs`, lets operators toggle
   individual features and the plugin as a whole.
+- **Gravity duplication (Folia only):** Restore gravity block duplication at End
+  portals. Toggle the Sand item directly above the bottom-right corner of the
+  admin menu (slot 44). Disabled by default; changes take effect immediately and
+  are saved as `gravity-duplication.enable`. The feature is ignored on Paper and
+  Spigot, even if enabled in the config. The plugin's main switch also disables it.
+- **Paper exploit status:** The Comparator in the bottom-right corner (slot 53)
+  shows the four loaded Paper settings below, green for enabled and red for
+  disabled. Available on Paper and Folia; clicking refreshes the display.
+
+| Setting under `unsupported-settings` | Mechanic |
+| --- | --- |
+| `allow-piston-duplication` | TNT, carpet and rail duplication |
+| `allow-headless-pistons` | Headless piston mechanics |
+| `allow-permanent-block-break-exploits` | Bedrock and End portal frame breaking |
+| `allow-unsafe-end-portal-teleportation` | End portal exploits; alone, this does not fix sand duplication on Folia |
+
+These are Paper's settings in `config/paper-global.yml`. The display reads the
+active configuration, including when a custom configuration directory is used.
+Edit the file and restart to apply changes; the menu does not change Paper's
+settings. If a value cannot be read on an unsupported server version, it is
+shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.7.2-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.8.0-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
@@ -95,9 +116,19 @@ Entity tasks follow their player or dragon on Paper and Folia; Spigot uses the
 Bukkit scheduler. TPA uses asynchronous teleportation where supported. Shared
 request, consent and configuration state is synchronized across regions.
 
-See [the v0.7.2 verification record](docs/verification-0.7.2.md) for test versions,
-scenarios and results. Java test sources and test-only Maven dependencies are
-not included in this release.
+See [the v0.8.0 verification record](docs/verification-0.8.0.md) for the gravity
+duplication and Paper status checks, and
+[the v0.7.2 record](docs/verification-0.7.2.md) for previous feature checks.
+Java test sources and test-only Maven dependencies are not included in this release.
+
+Gravity duplication is integrated into SurvivalFriend and does not require
+FoliaFlow. Remove the standalone FoliaFlow plugin when using this feature to
+avoid both plugins duplicating the same falling block. Motion defaults are
+adapted from [FoliaFlow](https://github.com/Hynse/FoliaFlow); its MIT license is
+included in the plugin JAR at `META-INF/licenses/FoliaFlow.txt`.
+
+The Paper setting descriptions follow the
+[Paper global configuration reference](https://docs.papermc.io/paper/reference/global-configuration/#unsupported-settings).
 
 ## Changes since v0.6
 

@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend;
 
 import de.laurinhummel.survivalfriend.commands.*;
 import de.laurinhummel.survivalfriend.events.*;
+import de.laurinhummel.survivalfriend.compat.ServerPlatform;
 import de.laurinhummel.survivalfriend.scheduling.ServerTasks;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -38,6 +39,7 @@ public final class SF extends JavaPlugin {
         pluginManager.registerEvents(new CancelCreeper(), this);
         pluginManager.registerEvents(new CancelCropTrampling(), this);
         pluginManager.registerEvents(new SoloPortalFarm(this), this);
+        if (ServerPlatform.isFolia()) pluginManager.registerEvents(new GravityDuplication(this), this);
         pluginManager.registerEvents(new HarderDragon(), this);
         pluginManager.registerEvents(new TotemPop(), this);
         pluginManager.registerEvents(rules, this);

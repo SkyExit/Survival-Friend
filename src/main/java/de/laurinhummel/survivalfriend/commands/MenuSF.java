@@ -2,6 +2,8 @@ package de.laurinhummel.survivalfriend.commands;
 
 import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.compat.ServerApi;
+import de.laurinhummel.survivalfriend.compat.ServerPlatform;
+import de.laurinhummel.survivalfriend.compat.PaperExploitSettings;
 import de.laurinhummel.survivalfriend.managers.MenuClickManager;
 import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.managers.ConfigAccess;
@@ -24,6 +26,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static de.laurinhummel.survivalfriend.commands.MenuSF.MenuItems.*;
@@ -49,7 +54,8 @@ public class MenuSF implements CommandExecutor, Listener {
         HARDER_DRAGON(40, "hd.enable"),
         TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable"),
-        RULES(45, "rules.enable");
+        RULES(45, "rules.enable"),
+        GRAVITY_DUPLICATION(44, "gravity-duplication.enable");
 
         private final int position;
         private final String path;
@@ -125,6 +131,16 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "Enable /rules and require players to accept them",
                 ChatColor.GRAY + "Status: " + getStatus(RULES.path)));
 
+        if (ServerPlatform.isFolia()) {
+            menu.setItem(GRAVITY_DUPLICATION.position, createItem(Material.SAND, "GRAVITY DUPLICATION", false,
+                    ChatColor.AQUA + "Enable gravity block duplication at End portals",
+                    ChatColor.GRAY + "Folia only; takes effect immediately",
+                    ChatColor.GRAY + "Status: " + getStatus(GRAVITY_DUPLICATION.path)));
+        }
+        if (ServerPlatform.isPaper()) {
+            menu.setItem(53, createItem(Material.COMPARATOR, "PAPER EXPLOIT SETTINGS", false, paperSettingsLore()));
+        }
+
         boolean enabled = ConfigAccess.enabled(SF.getPlugin(), "enabled");
         menu.setItem(49, createItem(enabled ? Material.GREEN_TERRACOTTA : Material.RED_TERRACOTTA,
                 "PLUGIN " + (enabled ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED"), enabled));
@@ -140,6 +156,26 @@ public class MenuSF implements CommandExecutor, Listener {
             if(config.getInt(type) == 2) return ChatColor.YELLOW + "ADMINS ONLY";
             return ChatColor.RED + "DISABLED";
         });
+    }
+
+    private String[] paperSettingsLore() {
+        Map<PaperExploitSettings.Setting, Boolean> settings = PaperExploitSettings.read();
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "paper-global.yml > unsupported-settings");
+        lore.add("");
+        for (PaperExploitSettings.Setting setting : PaperExploitSettings.Setting.values()) {
+            Boolean enabled = settings.get(setting);
+            String status = enabled == null ? ChatColor.RED + "UNKNOWN"
+                    : enabled ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED";
+            lore.add((Boolean.TRUE.equals(enabled) ? ChatColor.GREEN : ChatColor.RED) + setting.getKey() + ": " + status);
+            lore.add(ChatColor.GRAY + setting.getDescription());
+        }
+        lore.add("");
+        lore.add(ChatColor.YELLOW + "Unsafe End portal teleportation alone");
+        lore.add(ChatColor.YELLOW + "does not fix sand duplication on Folia.");
+        lore.add(ChatColor.GRAY + "Active values; restart after config changes.");
+        lore.add(ChatColor.GRAY + "Click to refresh this status display.");
+        return lore.toArray(String[]::new);
     }
 
     private ItemStack createItem(Material material, String name, boolean enchanted, String... lore) {

@@ -2,6 +2,7 @@ package de.laurinhummel.survivalfriend.managers;
 
 import de.laurinhummel.survivalfriend.SF;
 import de.laurinhummel.survivalfriend.commands.MenuSF;
+import de.laurinhummel.survivalfriend.compat.ServerPlatform;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class MenuClickManager {
@@ -22,6 +23,7 @@ public class MenuClickManager {
             } else {
                 for (MenuSF.MenuItems element : MenuSF.MenuItems.values()) {
                     if (element.getPosition() != position) continue;
+                    if (element == MenuSF.MenuItems.GRAVITY_DUPLICATION && !ServerPlatform.isFolia()) return;
                     String path = element.getPath();
                     switch (String.valueOf(config.get(path))) {
                         case "true" -> config.set(path, false);
