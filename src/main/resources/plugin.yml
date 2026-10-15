@@ -11,8 +11,6 @@ commands:
   menusf:
     description: Opens the menu to (de)activate features of this plugin
     usage: /menusf
-    aliases:
-      - menufs
   compass:
     description: Receive a compass pointing to a location
     usage: /compass <player>|<x> <z>

@@ -49,7 +49,7 @@ public class MenuSF implements CommandExecutor, Listener {
         HARDER_DRAGON(40, "hd.enable"),
         TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable"),
-        RULES(23, "rules.enable");
+        RULES(45, "rules.enable");
 
         private final int position;
         private final String path;
@@ -70,7 +70,7 @@ public class MenuSF implements CommandExecutor, Listener {
         Inventory menu = Bukkit.createInventory(holder, 6 * 9, "MenuSF");
         holder.inventory = menu;
 
-        for(int i : new int[]{0,1,9,7,8,17,36,45,46,44,53,52}) {
+        for(int i : new int[]{0,1,9,7,8,17,36,46,44,53,52}) {
             menu.setItem(i, createItem(Material.GRAY_STAINED_GLASS_PANE, "PLACEHOLDER", false, ""));
         }
 
