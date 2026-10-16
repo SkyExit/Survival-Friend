@@ -8,10 +8,12 @@ block-transformation:
   enable: true
 gravity-duplication:
   # Restore gravity block duplication at End portals on Folia only.
-  # Ignored on Paper and Spigot. Can be toggled immediately in the admin menu.
+  # Reset to false on Paper and Spigot startup, including after switching engines.
+  # Can be toggled immediately in the admin menu on Folia.
   enable: false
 pearl-stasis:
-  # Restore Ender pearl stasis chambers on Folia only. Ignored on Paper and Spigot.
+  # Restore Ender pearl stasis chambers on Folia only.
+  # Reset to false on Paper and Spigot startup, including after switching engines.
   # The menu switch takes effect immediately. Restart after changing other settings.
   enable: false
   # Radius of ticking chunks around each chamber: 0 = 1 chunk, 1 = 3x3, 2 = 5x5.

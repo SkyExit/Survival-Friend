@@ -66,6 +66,9 @@ public class MenuSF implements CommandExecutor, Listener {
 
         public int getPosition() { return position; }
         public String getPath() { return path; }
+        public boolean isAvailable() {
+            return (this != GRAVITY_DUPLICATION && this != PEARL_STASIS) || ServerPlatform.isFolia();
+        }
     }
 
     @Override

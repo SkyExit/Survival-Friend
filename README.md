@@ -1,4 +1,4 @@
-# SurvivalFriend v0.8.5-BETA
+# SurvivalFriend v0.8.6-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
 this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
@@ -53,8 +53,10 @@ classes. Use the Java version required by your Minecraft server.
 - **Gravity duplication (Folia only):** Restore gravity block duplication at End
   portals. Toggle the Sand item directly above the bottom-right corner of the
   admin menu (slot 44). Disabled by default; changes take effect immediately and
-  are saved as `gravity-duplication.enable`. The feature is ignored on Paper and
-  Spigot, even if enabled in the config. The plugin's main switch also disables it.
+  are saved as `gravity-duplication.enable`. On Paper and Spigot, the setting is
+  automatically reset to `false` and saved at startup, including after switching
+  from Folia. The feature cannot be enabled or run there. The plugin's main switch
+  also disables it.
   Sideways entries that break into items are supported. Temporary copies stay
   inside the portal until Folia completes the actual dimension change; only then
   are their momentum and gravity restored. Temporary invalidity during an
@@ -62,9 +64,11 @@ classes. Use the Java version required by your Minecraft server.
   the falling block's edges and diagonal motion. Blocked transfers are cleaned up.
 - **Pearl stasis fix (Folia only):** Restore Ender pearl stasis chambers using
   persistent pearl placeholders. Toggle the Eye of Ender in slot 52, directly
-  left of the bottom-right corner. Disabled by default and ignored on Paper and
-  Spigot. Upward bubble columns and honey chambers are supported; ordinary water
-  and downward bubble columns do not arm pearls. Saved chambers survive player
+  left of the bottom-right corner. Disabled by default; on Paper and Spigot,
+  `pearl-stasis.enable` is automatically reset to `false` and saved at startup.
+  The feature cannot be enabled or run there. Upward bubble columns and honey
+  chambers are supported; ordinary water and downward bubble columns do not arm
+  pearls. Saved chambers survive player
   disconnects, server restarts and disabling the feature. Colliding blocks or
   interacting with a placeholder trigger its owner; offline triggers wait for
   the owner to reconnect. Failed or cancelled teleports keep the chamber.
@@ -93,10 +97,15 @@ shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.8.5-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.8.6-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
+
+Switching from Folia to Paper or Spigot permanently disables both Folia-only
+features in the saved configuration. Switching back to Folia requires enabling
+them again in `/menusf`. Saved pearl chamber data is preserved but remains
+inactive until Pearl Stasis is enabled on Folia.
 
 Restart after editing health, cooldowns, the mob list or the rule text. Feature
 switches in the admin menu take effect immediately and are saved to the config.
@@ -141,6 +150,9 @@ rules and existing acceptance when the text is unchanged. The command is now
 `/rules`.
 
 ## Compatibility and verification
+
+See [the v0.8.6 verification record](docs/verification-0.8.6.md) for the
+Folia-to-Paper engine switch and persisted feature restrictions.
 
 See [the v0.8.5 verification record](docs/verification-0.8.5.md) for the read-only
 menu and native Block Transformation checks.

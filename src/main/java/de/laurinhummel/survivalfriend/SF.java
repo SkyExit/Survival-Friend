@@ -30,6 +30,13 @@ public final class SF extends JavaPlugin {
             getConfig().set("regeln", null);
         }
         getConfig().options().copyDefaults(true);
+        // A configuration carried over from Folia must not retain enabled Folia fixes.
+        for (MenuSF.MenuItems item : MenuSF.MenuItems.values()) {
+            if (!item.isAvailable() && getConfig().getBoolean(item.getPath())) {
+                getConfig().set(item.getPath(), false);
+                getLogger().info("Disabled " + item.getPath() + ": this feature requires Folia.");
+            }
+        }
         saveConfig();
 
         rules = new Rules(this);

@@ -14,6 +14,7 @@ public class PermissionManager {
      * @return boolean - Whether the feature is enabled or not
      */
     public static boolean checkEnabled(MenuSF.MenuItems item) {
+        if (!item.isAvailable()) return false;
         return ConfigAccess.read(SF.getPlugin(), config -> config.getBoolean("enabled") && config.getBoolean(item.getPath()));
     }
 
@@ -48,6 +49,7 @@ public class PermissionManager {
      * @return access level of the requested function
      */
     private static int getPerm(MenuSF.MenuItems item) {
+        if (!item.isAvailable()) return 3;
         Object o = ConfigAccess.read(SF.getPlugin(), config -> config.get(item.getPath()));
 
         if(o instanceof Integer) return (int) o;
