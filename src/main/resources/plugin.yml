@@ -9,7 +9,7 @@ commands:
     description: Displays the server rules and lets players accept them
     usage: /rules
   menusf:
-    description: Opens the menu to (de)activate features of this plugin
+    description: View plugin features; operators can activate or deactivate them
     usage: /menusf
   compass:
     description: Receive a compass pointing to a location

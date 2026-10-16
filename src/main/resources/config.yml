@@ -1,5 +1,11 @@
 # Utility access: 1 = all players, 2 = admins only, 3 = disabled.
 enabled: true
+block-transformation:
+  # All 16 colors: dropped concrete powder -> concrete in a water cauldron.
+  # Concrete powder -> matching stained glass in a normal furnace (1:1).
+  # Cauldrons keep their water; furnaces use normal fuel and cooking time.
+  # Toggle both transformations immediately in /menusf.
+  enable: true
 gravity-duplication:
   # Restore gravity block duplication at End portals on Folia only.
   # Ignored on Paper and Spigot. Can be toggled immediately in the admin menu.

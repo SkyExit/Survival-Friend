@@ -1,4 +1,4 @@
-# SurvivalFriend v0.8.4-BETA
+# SurvivalFriend v0.8.5-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
 this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
@@ -37,8 +37,19 @@ classes. Use the Java version required by your Minecraft server.
 - **Server rules:** `/rules` opens a paginated menu where players confirm each
   rule and then accept the complete list. This feature is **disabled by default**.
   Enable it with `rules.enable` or the **Server Rules** item in the admin menu.
-- **Admin menu:** `/menusf`, also available as `/menufs`, lets operators toggle
-  individual features and the plugin as a whole.
+- **Feature menu:** Everyone can open `/menusf`. Operators can toggle individual
+  features and the plugin as a whole. Other players see the same inventory with
+  `Read Only` in its title; every click checks current OP status before changing
+  settings. Item movement and dragging are blocked for all menu viewers.
+- **Block Transformation:** Enabled by default; toggle the Cauldron in slot 38
+  of `/menusf` or set `block-transformation.enable`. Drop concrete powder into a
+  water cauldron to turn the entire stack into concrete of the same color without
+  consuming water. Smelt concrete powder in a normal furnace to obtain matching
+  stained glass, one glass block per powder, with normal fuel consumption and
+  cooking time (200 ticks per item). All 16 colors are supported. Empty, lava and
+  powder snow cauldrons, blast furnaces, smokers and campfires do not perform these
+  transformations. The feature switch and the plugin's main switch take effect
+  immediately, including for items already in cauldrons and batches being smelted.
 - **Gravity duplication (Folia only):** Restore gravity block duplication at End
   portals. Toggle the Sand item directly above the bottom-right corner of the
   admin menu (slot 44). Disabled by default; changes take effect immediately and
@@ -82,7 +93,7 @@ shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.8.4-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.8.5-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
@@ -130,6 +141,9 @@ rules and existing acceptance when the text is unchanged. The command is now
 `/rules`.
 
 ## Compatibility and verification
+
+See [the v0.8.5 verification record](docs/verification-0.8.5.md) for the read-only
+menu and native Block Transformation checks.
 
 Entity tasks follow their player or dragon on Paper and Folia; Spigot uses the
 Bukkit scheduler. TPA uses asynchronous teleportation where supported. Shared

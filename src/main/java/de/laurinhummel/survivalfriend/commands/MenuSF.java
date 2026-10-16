@@ -5,7 +5,6 @@ import de.laurinhummel.survivalfriend.compat.ServerApi;
 import de.laurinhummel.survivalfriend.compat.ServerPlatform;
 import de.laurinhummel.survivalfriend.compat.PaperExploitSettings;
 import de.laurinhummel.survivalfriend.managers.MenuClickManager;
-import de.laurinhummel.survivalfriend.managers.PermissionManager;
 import de.laurinhummel.survivalfriend.managers.ConfigAccess;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -55,6 +54,7 @@ public class MenuSF implements CommandExecutor, Listener {
         TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable"),
         RULES(45, "rules.enable"),
+        BLOCK_TRANSFORMATION(38, "block-transformation.enable"),
         GRAVITY_DUPLICATION(44, "gravity-duplication.enable"),
         PEARL_STASIS(52, "pearl-stasis.enable");
 
@@ -70,11 +70,13 @@ public class MenuSF implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
-        if(!PermissionManager.checkPermission(sender, null)) { return true; }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "This command is for players only!");
+            return true;
+        }
 
-        Player player = (Player) sender;
         AdminMenu holder = new AdminMenu(player.getUniqueId());
-        Inventory menu = Bukkit.createInventory(holder, 6 * 9, "MenuSF");
+        Inventory menu = Bukkit.createInventory(holder, 6 * 9, player.isOp() ? "MenuSF" : "MenuSF (Read Only)");
         holder.inventory = menu;
 
         for(int i : new int[]{0,1,9,7,8,17,36,46,44,53,52}) {
@@ -131,6 +133,13 @@ public class MenuSF implements CommandExecutor, Listener {
         menu.setItem(RULES.position, createItem(Material.BOOK, "SERVER RULES", false,
                 ChatColor.AQUA + "Enable /rules and require players to accept them",
                 ChatColor.GRAY + "Status: " + getStatus(RULES.path)));
+
+        menu.setItem(BLOCK_TRANSFORMATION.position, createItem(Material.CAULDRON, "BLOCK TRANSFORMATION", false,
+                ChatColor.AQUA + "Drop concrete powder into a water cauldron for concrete",
+                ChatColor.AQUA + "Smelt concrete powder in a furnace for stained glass",
+                ChatColor.GRAY + "Keeps the color and amount; no cauldron water used",
+                ChatColor.GRAY + "Normal furnaces only; consumes fuel as usual",
+                ChatColor.GRAY + "Status: " + getStatus(BLOCK_TRANSFORMATION.path)));
 
         if (ServerPlatform.isFolia()) {
             menu.setItem(GRAVITY_DUPLICATION.position, createItem(Material.SAND, "GRAVITY DUPLICATION", false,
@@ -202,11 +211,11 @@ public class MenuSF implements CommandExecutor, Listener {
     @EventHandler
     public void onInventoryClick(final InventoryClickEvent e) {
         if (!(e.getInventory().getHolder() instanceof AdminMenu holder)) return;
-        Inventory menu = holder.inventory;
         e.setCancelled(true);
+        if (!e.getWhoClicked().isOp()) return;
+        Inventory menu = holder.inventory;
         if (!holder.owner.equals(e.getWhoClicked().getUniqueId())) return;
         if (e.getRawSlot() < 0 || e.getRawSlot() >= menu.getSize() || e.getClick() != ClickType.LEFT) return;
-        if (!PermissionManager.checkPermission(e.getWhoClicked(), null)) return;
 
         final ItemStack clickedItem = e.getCurrentItem();
         if (clickedItem == null || clickedItem.getType().isAir()) return;
