@@ -6,14 +6,14 @@
 
     <groupId>de.laurinhummel</groupId>
     <artifactId>survivalfriend</artifactId>
-    <version>0.8.6-BETA</version>
+    <version>0.9.0-BETA</version>
     <packaging>jar</packaging>
 
     <name>SurvivalFriend</name>
 
     <properties>
         <java.version>17</java.version>
-        <spigot-api.version>26.2-R0.1-SNAPSHOT</spigot-api.version>
+        <spigot-api.version>26.3-R0.1-SNAPSHOT</spigot-api.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

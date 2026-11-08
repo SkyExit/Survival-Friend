@@ -12,10 +12,10 @@ public class MenuClickManager {
     }
 
     public void updateConfig() {
-        FileConfiguration config = SF.getPlugin().getConfig();
         boolean refreshRules = false;
         boolean refreshStasis = false;
-        synchronized (config) {
+        synchronized (ConfigAccess.LOCK) {
+            FileConfiguration config = SF.getPlugin().getConfig();
             if (position == 49) {
                 config.set("enabled", !config.getBoolean("enabled"));
                 SF.getPlugin().saveConfig();

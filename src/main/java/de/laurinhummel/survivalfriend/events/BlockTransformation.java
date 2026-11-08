@@ -71,8 +71,8 @@ public final class BlockTransformation implements Listener, AutoCloseable {
         }
     }
 
-    private boolean enabled() {
-        return !closed && PermissionManager.checkEnabled(MenuSF.MenuItems.BLOCK_TRANSFORMATION);
+    private boolean enabled(MenuSF.MenuItems feature) {
+        return !closed && PermissionManager.checkEnabled(feature);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -122,7 +122,7 @@ public final class BlockTransformation implements Listener, AutoCloseable {
             ItemStack stack = item.getItemStack();
             Transformation transformation = TRANSFORMATIONS.get(stack.getType());
             if (transformation == null) { stop(); return; }
-            if (enabled() && inCauldronWater(item)) {
+            if (enabled(MenuSF.MenuItems.CAULDRON_CONCRETE) && inCauldronWater(item)) {
                 ItemStack concrete = stack.clone();
                 concrete.setType(transformation.concrete());
                 // Replace the same entity's whole stack; no extra drops or water changes.
@@ -152,7 +152,7 @@ public final class BlockTransformation implements Listener, AutoCloseable {
         if (!(event.getBlock().getState() instanceof Furnace furnace)) return;
         ItemStack input = furnace.getInventory().getSmelting();
         if (input != null && TRANSFORMATIONS.containsKey(input.getType())
-                && (event.getBlock().getType() != Material.FURNACE || !enabled())) {
+                && (event.getBlock().getType() != Material.FURNACE || !enabled(MenuSF.MenuItems.OVEN_GLASS))) {
             event.setCancelled(true);
         }
     }
@@ -160,7 +160,7 @@ public final class BlockTransformation implements Listener, AutoCloseable {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFurnaceSmelt(FurnaceSmeltEvent event) {
         if (TRANSFORMATIONS.containsKey(event.getSource().getType())
-                && (event.getBlock().getType() != Material.FURNACE || !enabled())) {
+                && (event.getBlock().getType() != Material.FURNACE || !enabled(MenuSF.MenuItems.OVEN_GLASS))) {
             // Also stop a batch that was already cooking when an operator disabled it.
             event.setCancelled(true);
         }

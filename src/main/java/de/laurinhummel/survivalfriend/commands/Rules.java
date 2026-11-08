@@ -31,13 +31,12 @@ import java.util.logging.Level;
 public final class Rules implements CommandExecutor, Listener {
     private static final int PAGE_SIZE = 45;
     private final SF plugin;
-    private final RulesAgreement agreement;
+    private volatile RulesAgreement agreement;
     private final File file;
     private final YamlConfiguration data = new YamlConfiguration();
 
     public Rules(SF plugin) {
         this.plugin = plugin;
-        agreement = new RulesAgreement(plugin.getConfig().getStringList("rules.entries"));
         file = new File(plugin.getDataFolder(), "accepted-rules.yml");
         if (file.exists()) {
             try {
@@ -46,21 +45,29 @@ public final class Rules implements CommandExecutor, Listener {
                 throw new IllegalStateException("Could not load accepted-rules.yml", e);
             }
         }
+        reload();
+    }
+
+    public synchronized void reload() {
+        RulesAgreement next = new RulesAgreement(ConfigAccess.read(plugin, config -> config.getStringList("rules.entries")));
+        if (agreement != null && agreement.getRevision().equals(next.getRevision())) return;
         ConfigurationSection players = data.getConfigurationSection("players");
         if (players != null) {
             for (String id : players.getKeys(false)) {
                 try {
-                    agreement.restore(UUID.fromString(id), players.getString(id));
+                    next.restore(UUID.fromString(id), players.getString(id));
                 } catch (IllegalArgumentException e) {
                     plugin.getLogger().warning("Ignoring invalid player UUID in accepted-rules.yml: " + id);
                 }
             }
         }
+        agreement = next;
     }
 
     public boolean requiresAcceptance(Player player) {
-        return isEnabled() && !agreement.getRules().isEmpty()
-                && !agreement.hasAccepted(player.getUniqueId());
+        RulesAgreement current = agreement;
+        return isEnabled() && !current.getRules().isEmpty()
+                && !current.hasAccepted(player.getUniqueId());
     }
 
     private boolean isEnabled() {
@@ -69,13 +76,11 @@ public final class Rules implements CommandExecutor, Listener {
 
     public void refresh(Player player) {
         if (!player.isOnline()) return;
+        if (ServerApi.topInventory(player.getOpenInventory()).getHolder() instanceof RulesMenu) player.closeInventory();
         if (isEnabled()) {
             prompt(player);
         } else {
             agreement.forgetPending(player.getUniqueId());
-            if (ServerApi.topInventory(player.getOpenInventory()).getHolder() instanceof RulesMenu) {
-                player.closeInventory();
-            }
         }
     }
 
@@ -102,11 +107,11 @@ public final class Rules implements CommandExecutor, Listener {
         return true;
     }
 
-    private void open(Player player, int page) {
-        if (!isEnabled()) return;
+    private synchronized void open(Player player, int page) {
+        if (!isEnabled() || agreement.getRules().isEmpty()) return;
         int pages = (agreement.getRules().size() + PAGE_SIZE - 1) / PAGE_SIZE;
         page = Math.max(0, Math.min(page, pages - 1));
-        RulesMenu menu = new RulesMenu(player.getUniqueId(), page);
+        RulesMenu menu = new RulesMenu(player.getUniqueId(), page, agreement.getRevision());
         menu.inventory = Bukkit.createInventory(menu, 54, "Server rules " + (page + 1) + "/" + pages);
         for (int slot = 0; slot < PAGE_SIZE; slot++) {
             int index = page * PAGE_SIZE + slot;
@@ -162,11 +167,11 @@ public final class Rules implements CommandExecutor, Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onClick(InventoryClickEvent event) {
+    public synchronized void onClick(InventoryClickEvent event) {
         if (!(ServerApi.topInventory(event.getView()).getHolder() instanceof RulesMenu menu)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player) || !menu.owner.equals(player.getUniqueId())) return;
-        if (!isEnabled()) {
+        if (!isEnabled() || !menu.revision.equals(agreement.getRevision())) {
             plugin.getTasks().later(player, () -> refresh(player));
             return;
         }
@@ -289,9 +294,10 @@ public final class Rules implements CommandExecutor, Listener {
     private static final class RulesMenu implements InventoryHolder {
         private final UUID owner;
         private final int page;
+        private final String revision;
         private Inventory inventory;
 
-        private RulesMenu(UUID owner, int page) { this.owner = owner; this.page = page; }
+        private RulesMenu(UUID owner, int page, String revision) { this.owner = owner; this.page = page; this.revision = revision; }
         @Override
         public Inventory getInventory() { return inventory; }
     }

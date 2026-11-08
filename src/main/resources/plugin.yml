@@ -10,7 +10,7 @@ commands:
     usage: /rules
   menusf:
     description: View plugin features; operators can activate or deactivate them
-    usage: /menusf
+    usage: /menusf [reload]
   compass:
     description: Receive a compass pointing to a location
     usage: /compass <player>|<x> <z>
@@ -32,3 +32,8 @@ commands:
   tpa:
     description: TPA
     usage: /tpa <player> [accept]
+
+permissions:
+  survivalfriend.reload:
+    description: Reload SurvivalFriend configuration without restarting the server
+    default: op

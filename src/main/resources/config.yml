@@ -1,11 +1,21 @@
 # Utility access: 1 = all players, 2 = admins only, 3 = disabled.
 enabled: true
-block-transformation:
-  # All 16 colors: dropped concrete powder -> concrete in a water cauldron.
-  # Concrete powder -> matching stained glass in a normal furnace (1:1).
-  # Cauldrons keep their water; furnaces use normal fuel and cooking time.
-  # Toggle both transformations immediately in /menusf.
+cauldron-concrete:
+  # All 16 colors: dropped concrete powder -> concrete; no water is consumed.
+  # Independent from oven-glass; toggles immediately in /menusf.
   enable: true
+oven-glass:
+  # Concrete powder -> matching stained glass (1:1) in a normal furnace.
+  # Normal fuel and cooking time; independent from cauldron-concrete.
+  enable: true
+beacon-range-extender:
+  # Extend active, loaded beacons without keeping chunks loaded.
+  enable: false
+  # Horizontal radius in blocks (50-1000); vanilla reaches up to 50.
+  # Square area, extending this far below the beacon and to the world ceiling.
+  # Apply config changes with /menusf reload. Updates run every 4 seconds.
+  # Already granted effects expire naturally when disabled or out of range.
+  range: 100
 gravity-duplication:
   # Restore gravity block duplication at End portals on Folia only.
   # Reset to false on Paper and Spigot startup, including after switching engines.
@@ -14,7 +24,7 @@ gravity-duplication:
 pearl-stasis:
   # Restore Ender pearl stasis chambers on Folia only.
   # Reset to false on Paper and Spigot startup, including after switching engines.
-  # The menu switch takes effect immediately. Restart after changing other settings.
+  # The menu switch takes effect immediately. Use /menusf reload after file edits.
   enable: false
   # Radius of ticking chunks around each chamber: 0 = 1 chunk, 1 = 3x3, 2 = 5x5.
   # Allowed range: 0-8. Overlapping chambers share their chunk tickets.
@@ -43,7 +53,7 @@ spf:
   enable: true
   # Prevent distance-based despawning for these mobs after their first portal contact.
   # This does not keep chunks loaded. Previously protected mobs keep their protection.
-  # Use 'mobs: []' to protect no additional mobs. Restart after changing this list.
+  # Use 'mobs: []' to protect no additional mobs. Apply edits with /menusf reload.
   # Bukkit mob names (availability and some names depend on the Minecraft version):
   # ALLAY, ARMADILLO, AXOLOTL, BAT, BEE, BLAZE, BOGGED, BREEZE, CAMEL, CAT,
   # CAVE_SPIDER, CHICKEN, COD, COPPER_GOLEM, COW, CREAKING, CREEPER, DOLPHIN,
@@ -67,7 +77,7 @@ spf:
 tpa:
   enable: true
   # Time between sent requests, in seconds. 3600 = 60 minutes.
-  # Set to 0 to disable the cooldown. Restart after changing these values.
+  # Set to 0 to disable the cooldown. Apply edits with /menusf reload.
   cooldown-seconds: 3600
   # Request lifetime in seconds (minimum: 1).
   request-timeout-seconds: 120
@@ -84,7 +94,7 @@ rules:
   # Toggle this feature in the /menufs admin menu or change it here.
   enable: false
   # One rule per list entry. Color codes using & are supported.
-  # Restart after editing the rules. Changed rules require renewed acceptance.
+  # Use /menusf reload after editing. Changed rules require renewed acceptance.
   # An empty list (entries: []) also disables the movement restriction.
   entries:
     - 'Treat other players with respect.'

@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /** Optional Paper APIs are resolved through their public interfaces to retain Spigot support. */
 public final class ServerTasks implements AutoCloseable {
@@ -20,6 +21,7 @@ public final class ServerTasks implements AutoCloseable {
     private final Method ownsLocation;
     private final Method getRegionScheduler;
     private final Method regionExecute;
+    private final Method regionDelayed;
     private final Method getChunkAtAsync;
     private volatile boolean closed;
 
@@ -34,6 +36,7 @@ public final class ServerTasks implements AutoCloseable {
             ownsLocation = null;
             getRegionScheduler = null;
             regionExecute = null;
+            regionDelayed = null;
             getChunkAtAsync = null;
             // Never silently use Bukkit's scheduler on a broken/unsupported Folia API.
             try {
@@ -48,6 +51,7 @@ public final class ServerTasks implements AutoCloseable {
                 ownsLocation = Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class);
                 getRegionScheduler = Bukkit.class.getMethod("getRegionScheduler");
                 regionExecute = getRegionScheduler.getReturnType().getMethod("execute", Plugin.class, Location.class, Runnable.class);
+                regionDelayed = getRegionScheduler.getReturnType().getMethod("runDelayed", Plugin.class, Location.class, Consumer.class, long.class);
                 getChunkAtAsync = World.class.getMethod("getChunkAtAsync", int.class, int.class, boolean.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Incomplete Paper/Folia scheduling API", e);
@@ -88,6 +92,15 @@ public final class ServerTasks implements AutoCloseable {
         if (closed || !plugin.isEnabled()) { retired.run(); return; }
         if (!hasEntityScheduler()) Bukkit.getScheduler().runTaskLater(plugin, guarded(task), delayTicks);
         else schedule(entity, task, retired, delayTicks);
+    }
+
+    /** Schedule on a block's region without requesting or generating its chunk. */
+    public void later(Location location, Runnable task, long delayTicks) {
+        if (delayTicks < 1L) throw new IllegalArgumentException("Task delay must be at least one tick");
+        if (closed || !plugin.isEnabled()) return;
+        if (getRegionScheduler == null) Bukkit.getScheduler().runTaskLater(plugin, guarded(task), delayTicks);
+        else invoke(regionDelayed, invoke(getRegionScheduler, null), plugin, location.clone(),
+                (Consumer<Object>) ignored -> guarded(task).run(), delayTicks);
     }
 
     /** Load terrain asynchronously, then run block/entity work on the destination region. */

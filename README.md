@@ -1,7 +1,7 @@
-# SurvivalFriend v0.8.6-BETA
+# SurvivalFriend v0.9.0-BETA
 
 A survival server plugin for Spigot, Paper and Folia. Build with JDK 25 and Maven;
-this project targets the Spigot 26.2 API and produces Java 17 compatible plugin
+this project targets the Spigot 26.3 API and produces Java 17 compatible plugin
 classes. Use the Java version required by your Minecraft server.
 
 ## Features
@@ -41,15 +41,33 @@ classes. Use the Java version required by your Minecraft server.
   features and the plugin as a whole. Other players see the same inventory with
   `Read Only` in its title; every click checks current OP status before changing
   settings. Item movement and dragging are blocked for all menu viewers.
-- **Block Transformation:** Enabled by default; toggle the Cauldron in slot 38
-  of `/menusf` or set `block-transformation.enable`. Drop concrete powder into a
+- **Cauldron Concrete:** Enabled by default; toggle the Cauldron in slot 37
+  of `/menusf` or set `cauldron-concrete.enable`. Drop concrete powder into a
   water cauldron to turn the entire stack into concrete of the same color without
-  consuming water. Smelt concrete powder in a normal furnace to obtain matching
+  consuming water. All 16 colors are supported. Empty, lava and powder snow
+  cauldrons do not convert powder. The switch takes effect immediately, including
+  for stacks already inside a cauldron.
+- **Oven Glass:** Enabled by default; toggle the Furnace in slot 38 of `/menusf`
+  or set `oven-glass.enable`. Smelt concrete powder in a normal furnace to obtain matching
   stained glass, one glass block per powder, with normal fuel consumption and
-  cooking time (200 ticks per item). All 16 colors are supported. Empty, lava and
-  powder snow cauldrons, blast furnaces, smokers and campfires do not perform these
-  transformations. The feature switch and the plugin's main switch take effect
-  immediately, including for items already in cauldrons and batches being smelted.
+  cooking time (200 ticks per item). All 16 colors are supported. Blast furnaces,
+  smokers and campfires do not perform this transformation. Disabling it also
+  stops batches already cooking. Both features are independent and respect the
+  plugin's main switch. Existing `block-transformation.enable` settings migrate
+  to both switches, preserving explicitly configured split settings.
+- **Beacon Range Extender:** Disabled by default; toggle the Beacon in slot 42
+  or set `beacon-range-extender.enable`. Configure `beacon-range-extender.range`
+  (default 100, allowed 50–1000 blocks) and apply file edits with `/menusf reload`.
+  Extends the vanilla square range horizontally and below the beacon; players
+  above it are covered up to the world ceiling. Active pyramids, an unobstructed
+  beam, the selected primary/secondary effects and their levels are respected.
+  Only loaded beacons work. No chunks are generated or kept loaded, and no
+  persistent beacon range data is changed. Beacon snapshots and player effects
+  update every 80 ticks, using each block/player's own Folia region. Spatial
+  indexing limits player checks to nearby beacons. Disabling the feature stops
+  effect refreshes; existing effects expire naturally, without removing effects
+  supplied by potions or other plugins. The minimum of 50 preserves vanilla's
+  maximum range: this feature extends beacons rather than shrinking vanilla range.
 - **Gravity duplication (Folia only):** Restore gravity block duplication at End
   portals. Toggle the Sand item directly above the bottom-right corner of the
   admin menu (slot 44). Disabled by default; changes take effect immediately and
@@ -97,7 +115,7 @@ shown as `UNKNOWN` in red.
 
 ## Installation and configuration
 
-Run `mvn clean package` and copy `target/survivalfriend-0.8.6-BETA.jar` into your
+Run `mvn clean package` and copy `target/survivalfriend-0.9.0-BETA.jar` into your
 server's `plugins` folder. Start the server to create
 `plugins/SurvivalFriend/config.yml`. Existing settings are preserved and missing
 defaults are added automatically.
@@ -107,8 +125,16 @@ features in the saved configuration. Switching back to Folia requires enabling
 them again in `/menusf`. Saved pearl chamber data is preserved but remains
 inactive until Pearl Stasis is enabled on Folia.
 
-Restart after editing health, cooldowns, the mob list or the rule text. Feature
-switches in the admin menu take effect immediately and are saved to the config.
+Use `/menusf reload` after editing `config.yml`. The console and users with
+`survivalfriend.reload` (operators by default) can reload even while the plugin's
+main feature switch is disabled. Feature switches, beacon range, dragon health,
+TPA timings, portal-farm mobs, rules and pearl-stasis settings are refreshed.
+Already spawned dragons and already protected mobs retain their state. Existing
+TPA requests keep their original expiry; new requests use the updated timeout,
+and existing cooldowns are adjusted to the new cooldown setting. Changed rules
+require renewed acceptance, while unchanged rules preserve acceptance and progress.
+Open menus refresh on their viewers' own region. Malformed YAML is rejected and
+the previous running configuration is retained. Menu toggles are saved immediately.
 
 ```yaml
 hd:
@@ -151,6 +177,10 @@ rules and existing acceptance when the text is unchanged. The command is now
 
 ## Compatibility and verification
 
+See [the v0.9.0 verification record](docs/verification-0.9.0.md) for 480 passing
+integration assertions on Folia 26.3 and 1.21.8, and Spigot 26.3 and 1.19.4,
+covering independent transformations, the Beacon Range Extender and hot reload.
+
 See [the v0.8.6 verification record](docs/verification-0.8.6.md) for the
 Folia-to-Paper engine switch and persisted feature restrictions.
 
@@ -192,6 +222,16 @@ Use SurvivalFriend's implementation without the standalone PearlStasisFix plugin
 
 The Paper setting descriptions follow the
 [Paper global configuration reference](https://docs.papermc.io/paper/reference/global-configuration/#unsupported-settings).
+
+The Beacon Range Extender takes its configuration idea from
+[BeaconRanger](https://github.com/TheLion102009/BeaconRanger). Its implementation
+is independent and uses the common Bukkit API on Spigot, Paper and Folia, without
+BeaconRanger's chunk force-loading, global force-load cleanup or unsafe scheduler
+fallback. It introduces no runtime dependencies or network requests.
+
+See [v0.9.0 verification](docs/verification-0.9.0.md) for the tested server matrix,
+integration coverage and limits. The disposable native-server harness is in
+`verification/v0.9.0/`; it is excluded from the plugin JAR.
 
 ## Changes since v0.6
 

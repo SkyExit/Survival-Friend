@@ -10,7 +10,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/** Bridges Bukkit renames and class/interface changes between 1.19.4 and 26.2. */
+/** Bridges Bukkit renames and class/interface changes between 1.19.4 and 26.3. */
 public final class ServerApi {
     public static final Attribute MAX_HEALTH = constant(Attribute.class, "MAX_HEALTH", "GENERIC_MAX_HEALTH");
     public static final PotionEffectType RESISTANCE = constant(PotionEffectType.class, "RESISTANCE", "DAMAGE_RESISTANCE");

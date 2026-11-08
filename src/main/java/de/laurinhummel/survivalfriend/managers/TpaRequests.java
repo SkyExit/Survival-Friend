@@ -21,8 +21,8 @@ public final class TpaRequests {
     private final Map<UUID, Request> requests = new HashMap<>();
     private final Map<UUID, Long> cooldowns = new HashMap<>();
     private final LongSupplier clock;
-    private final long timeoutMillis;
-    private final long cooldownMillis;
+    private long timeoutMillis;
+    private long cooldownMillis;
 
     public TpaRequests(LongSupplier clock, long timeoutMillis, long cooldownMillis) {
         this.clock = clock;
@@ -32,6 +32,15 @@ public final class TpaRequests {
 
     public synchronized long remainingCooldownMillis(UUID sender) {
         return Math.max(0, cooldowns.getOrDefault(sender, 0L) - clock.getAsLong());
+    }
+
+    /** Existing requests retain their expiry; cooldowns follow the updated setting. */
+    public synchronized void reconfigure(long timeoutMillis, long cooldownMillis) {
+        long nextCooldown = Math.max(0, cooldownMillis);
+        long difference = nextCooldown - this.cooldownMillis;
+        cooldowns.replaceAll((id, expiry) -> expiry + difference);
+        this.timeoutMillis = Math.max(1, timeoutMillis);
+        this.cooldownMillis = nextCooldown;
     }
 
     public synchronized boolean send(UUID sender, UUID recipient) {

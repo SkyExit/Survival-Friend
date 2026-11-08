@@ -33,6 +33,14 @@ public class TPA implements CommandExecutor, TabCompleter, Listener {
                 Math.max(0, ConfigAccess.integer(plugin, "tpa.cooldown-seconds")) * 1000L);
     }
 
+    public void reload() {
+        ConfigAccess.read(plugin, config -> {
+            requests.reconfigure(Math.max(1, config.getInt("tpa.request-timeout-seconds")) * 1000L,
+                    Math.max(0, config.getInt("tpa.cooldown-seconds")) * 1000L);
+            return null;
+        });
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!PermissionManager.checkPermission(sender, MenuSF.MenuItems.TPA)) return true;

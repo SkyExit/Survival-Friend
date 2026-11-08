@@ -17,9 +17,15 @@ import java.util.Locale;
 import java.util.Set;
 
 public class SoloPortalFarm implements Listener {
-    private final Set<EntityType> farmMobs;
+    private final SF plugin;
+    private volatile Set<EntityType> farmMobs;
 
     public SoloPortalFarm(SF plugin) {
+        this.plugin = plugin;
+        reload();
+    }
+
+    public void reload() {
         Set<EntityType> mobs = EnumSet.noneOf(EntityType.class);
         for (String name : ConfigAccess.read(plugin, config -> config.getStringList("spf.mobs"))) {
             try {

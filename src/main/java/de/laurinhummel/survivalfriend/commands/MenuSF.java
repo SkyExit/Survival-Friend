@@ -12,6 +12,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,7 +33,7 @@ import java.util.UUID;
 
 import static de.laurinhummel.survivalfriend.commands.MenuSF.MenuItems.*;
 
-public class MenuSF implements CommandExecutor, Listener {
+public class MenuSF implements CommandExecutor, TabCompleter, Listener {
 
     private static final class AdminMenu implements InventoryHolder {
         private final UUID owner;
@@ -54,7 +55,9 @@ public class MenuSF implements CommandExecutor, Listener {
         TOTEM_MSG(22, "totem.enable"),
         TPA(25, "tpa.enable"),
         RULES(45, "rules.enable"),
-        BLOCK_TRANSFORMATION(38, "block-transformation.enable"),
+        CAULDRON_CONCRETE(37, "cauldron-concrete.enable"),
+        OVEN_GLASS(38, "oven-glass.enable"),
+        BEACON_RANGE_EXTENDER(42, "beacon-range-extender.enable"),
         GRAVITY_DUPLICATION(44, "gravity-duplication.enable"),
         PEARL_STASIS(52, "pearl-stasis.enable");
 
@@ -73,6 +76,24 @@ public class MenuSF implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+        if (args.length == 1 && args[0].equalsIgnoreCase("reload")) {
+            if (!sender.hasPermission("survivalfriend.reload")) {
+                sender.sendMessage(ChatColor.RED + "You do not have permission to reload SurvivalFriend.");
+                return true;
+            }
+            try {
+                SF.getPlugin().reloadSettings();
+                sender.sendMessage(ChatColor.GREEN + "SurvivalFriend configuration reloaded.");
+            } catch (Exception error) {
+                SF.getPlugin().getLogger().log(java.util.logging.Level.WARNING, "Could not reload config.yml", error);
+                sender.sendMessage(ChatColor.RED + "Could not reload config.yml. Check the server log; fix the file and retry.");
+            }
+            return true;
+        }
+        if (args.length != 0) {
+            sender.sendMessage(ChatColor.RED + "Usage: /menusf [reload]");
+            return true;
+        }
         if (!(sender instanceof Player player)) {
             sender.sendMessage(ChatColor.RED + "This command is for players only!");
             return true;
@@ -137,12 +158,18 @@ public class MenuSF implements CommandExecutor, Listener {
                 ChatColor.AQUA + "Enable /rules and require players to accept them",
                 ChatColor.GRAY + "Status: " + getStatus(RULES.path)));
 
-        menu.setItem(BLOCK_TRANSFORMATION.position, createItem(Material.CAULDRON, "BLOCK TRANSFORMATION", false,
+        menu.setItem(CAULDRON_CONCRETE.position, createItem(Material.CAULDRON, "CAULDRON CONCRETE", false,
                 ChatColor.AQUA + "Drop concrete powder into a water cauldron for concrete",
-                ChatColor.AQUA + "Smelt concrete powder in a furnace for stained glass",
                 ChatColor.GRAY + "Keeps the color and amount; no cauldron water used",
+                ChatColor.GRAY + "Status: " + getStatus(CAULDRON_CONCRETE.path)));
+        menu.setItem(OVEN_GLASS.position, createItem(Material.FURNACE, "OVEN GLASS", false,
+                ChatColor.AQUA + "Smelt concrete powder in a furnace for stained glass",
                 ChatColor.GRAY + "Normal furnaces only; consumes fuel as usual",
-                ChatColor.GRAY + "Status: " + getStatus(BLOCK_TRANSFORMATION.path)));
+                ChatColor.GRAY + "Status: " + getStatus(OVEN_GLASS.path)));
+        menu.setItem(BEACON_RANGE_EXTENDER.position, createItem(Material.BEACON, "BEACON RANGE EXTENDER", false,
+                ChatColor.AQUA + "Extend active beacons to " + ConfigAccess.integer(SF.getPlugin(), "beacon-range-extender.range") + " blocks",
+                ChatColor.GRAY + "Loaded beacons only; does not keep chunks loaded",
+                ChatColor.GRAY + "Status: " + getStatus(BEACON_RANGE_EXTENDER.path)));
 
         if (ServerPlatform.isFolia()) {
             menu.setItem(GRAVITY_DUPLICATION.position, createItem(Material.SAND, "GRAVITY DUPLICATION", false,
@@ -167,6 +194,18 @@ public class MenuSF implements CommandExecutor, Listener {
         player.openInventory(menu);
 
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        return args.length == 1 && sender.hasPermission("survivalfriend.reload")
+                && "reload".startsWith(args[0].toLowerCase(java.util.Locale.ROOT)) ? List.of("reload") : List.of();
+    }
+
+    public void refresh(Player player) {
+        if (player.isOnline() && ServerApi.topInventory(player.getOpenInventory()).getHolder() instanceof AdminMenu) {
+            onCommand(player, SF.getPlugin().getCommand("menusf"), "menusf", new String[0]);
+        }
     }
 
     private String getStatus(String type) {

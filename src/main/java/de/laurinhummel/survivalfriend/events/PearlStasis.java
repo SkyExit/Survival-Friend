@@ -53,7 +53,7 @@ public final class PearlStasis implements Listener, AutoCloseable {
     private record Settings(int radius, double height, boolean bubbles, int bubbleTicks, int touchTicks, Set<Material> mediums) { }
 
     private final SF plugin;
-    private final Settings settings;
+    private volatile Settings settings;
     private final StasisStore store;
     private final StasisChunkTickets tickets;
     private final NamespacedKey chamberKey;
@@ -109,6 +109,23 @@ public final class PearlStasis implements Listener, AutoCloseable {
             active.clear();
             tickets.clear();
         }
+    }
+
+    public synchronized void reload() {
+        Settings next = loadSettings();
+        if (!settings.equals(next) && running) {
+            running = false;
+            generation++;
+            flights.clear();
+            active.values().forEach(parked -> plugin.getTasks().execute(parked.item, () -> {
+                ParkedPearl current = active.get(parked.chamber.id);
+                if (current == null || !current.item.getUniqueId().equals(parked.item.getUniqueId())) parked.item.remove();
+            }));
+            active.clear();
+            tickets.clear();
+        }
+        settings = next;
+        refresh();
     }
 
     private boolean enabled() {
